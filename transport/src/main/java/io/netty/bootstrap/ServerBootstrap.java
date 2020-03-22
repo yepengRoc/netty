@@ -80,7 +80,7 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
      * {@link Channel}'s.
      */
     public ServerBootstrap group(EventLoopGroup parentGroup, EventLoopGroup childGroup) {
-        super.group(parentGroup);
+        super.group(parentGroup);//设置父亲线程组
         if (this.childGroup != null) {
             throw new IllegalStateException("childGroup set already");
         }
@@ -194,7 +194,9 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
             // Task which is scheduled to re-enable auto-read.
             // It's important to create this Runnable before we try to submit it as otherwise the URLClassLoader may
             // not be able to load the class because of the file limit it already reached.
-            //
+            //计划重新启用自动读取的任务。
+            // 在尝试提交此Runnable之前，务必先创建它，
+            // 否则URLClassLoader可能由于已达到文件限制而无法加载该类
             // See https://github.com/netty/netty/issues/1328
             enableAutoReadTask = new Runnable() {
                 @Override

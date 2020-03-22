@@ -60,10 +60,10 @@ public final class FileServer {
         try {
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup)
-             .channel(NioServerSocketChannel.class)
+             .channel(NioServerSocketChannel.class)//ReflectiveChannelFactory
              .option(ChannelOption.SO_BACKLOG, 100)
-             .handler(new LoggingHandler(LogLevel.INFO))
-             .childHandler(new ChannelInitializer<SocketChannel>() {
+             .handler(new LoggingHandler(LogLevel.INFO))//作用于父线程组
+             .childHandler(new ChannelInitializer<SocketChannel>() {//作用于子线程组
                  @Override
                  public void initChannel(SocketChannel ch) throws Exception {
                      ChannelPipeline p = ch.pipeline();
@@ -79,7 +79,7 @@ public final class FileServer {
                  }
              });
 
-            // Start the server.
+            // Start the server.  核心实现
             ChannelFuture f = b.bind(PORT).sync();
 
             // Wait until the server socket is closed.

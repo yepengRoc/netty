@@ -51,6 +51,7 @@ public abstract class AbstractNioChannel extends AbstractChannel {
             InternalLoggerFactory.getInstance(AbstractNioChannel.class);
 
     private final SelectableChannel ch;
+    //读取感兴趣的操作
     protected final int readInterestOp;
     volatile SelectionKey selectionKey;
     boolean readPending;

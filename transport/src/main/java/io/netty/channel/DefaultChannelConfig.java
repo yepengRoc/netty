@@ -163,11 +163,11 @@ public class DefaultChannelConfig implements ChannelConfig {
     public <T> boolean setOption(ChannelOption<T> option, T value) {
         validate(option, value);
 
-        if (option == CONNECT_TIMEOUT_MILLIS) {
+        if (option == CONNECT_TIMEOUT_MILLIS) {//连接超时时间
             setConnectTimeoutMillis((Integer) value);
-        } else if (option == MAX_MESSAGES_PER_READ) {
+        } else if (option == MAX_MESSAGES_PER_READ) {//每次读取的最大信息
             setMaxMessagesPerRead((Integer) value);
-        } else if (option == WRITE_SPIN_COUNT) {
+        } else if (option == WRITE_SPIN_COUNT) {//写自旋次数。写失败，可以写几次
             setWriteSpinCount((Integer) value);
         } else if (option == ALLOCATOR) {
             setAllocator((ByteBufAllocator) value);
