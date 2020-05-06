@@ -22,7 +22,7 @@ import io.netty.util.internal.TypeParameterMatcher;
  * {@link ChannelInboundHandlerAdapter} which allows to explicit only handle a specific type of messages.
  *
  * For example here is an implementation which only handle {@link String} messages.
- *
+ *ChannelInboundHandlerAdapter，它允许仅显式处理特定类型的消息。例如，这里是仅处理字符串消息的实现。
  * <pre>
  *     public class StringHandler extends
  *             {@link SimpleChannelInboundHandler}&lt;{@link String}&gt; {
@@ -38,6 +38,8 @@ import io.netty.util.internal.TypeParameterMatcher;
  * Be aware that depending of the constructor parameters it will release all handled messages by passing them to
  * {@link ReferenceCountUtil#release(Object)}. In this case you may need to use
  * {@link ReferenceCountUtil#retain(Object)} if you pass the object to the next handler in the {@link ChannelPipeline}.
+ * 请注意，根据构造函数的参数，它将通过将所有处理过的消息传递给ReferenceCountUtil.release（Object）来释放它们。
+ * 在这种情况下，如果将对象传递给ChannelPipeline中的下一个处理程序，则可能需要使用ReferenceCountUtil.retain（Object）。
  */
 public abstract class SimpleChannelInboundHandler<I> extends ChannelInboundHandlerAdapter {
 
@@ -89,6 +91,13 @@ public abstract class SimpleChannelInboundHandler<I> extends ChannelInboundHandl
         return matcher.match(msg);
     }
 
+    /**
+     * SimpleChannelInboundHandler 中有自动释放的功能，所以如果继承了SimpleChannelInboundHandler的话，
+     * 不能再对msg 进行引用，因为会被自动释放
+     * @param ctx
+     * @param msg
+     * @throws Exception
+     */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         boolean release = true;
@@ -99,10 +108,10 @@ public abstract class SimpleChannelInboundHandler<I> extends ChannelInboundHandl
                 channelRead0(ctx, imsg);
             } else {
                 release = false;
-                ctx.fireChannelRead(msg);
+                ctx.fireChannelRead(msg);//
             }
         } finally {
-            if (autoRelease && release) {
+            if (autoRelease && release) {//自动进行消息回收
                 ReferenceCountUtil.release(msg);
             }
         }

@@ -25,6 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A {@link ThreadFactory} implementation with a simple naming rule.
+ * 线程工厂实现。并提供咯一个简单的命名实现
  */
 public class DefaultThreadFactory implements ThreadFactory {
 
@@ -37,6 +38,11 @@ public class DefaultThreadFactory implements ThreadFactory {
     protected final ThreadGroup threadGroup;
 
     public DefaultThreadFactory(Class<?> poolType) {
+        /**
+         * 类型
+         * 是否守护线程
+         * 线程优先级
+         */
         this(poolType, false, Thread.NORM_PRIORITY);
     }
 
@@ -67,13 +73,14 @@ public class DefaultThreadFactory implements ThreadFactory {
     public static String toPoolName(Class<?> poolType) {
         ObjectUtil.checkNotNull(poolType, "poolType");
 
-        String poolName = StringUtil.simpleClassName(poolType);
+        String poolName = StringUtil.simpleClassName(poolType);//对类全路径 进行截取，只截取类型，去掉包名
         switch (poolName.length()) {
             case 0:
                 return "unknown";
             case 1:
                 return poolName.toLowerCase(Locale.US);
             default:
+                //转为为驼峰式名字。首字母大写转小写
                 if (Character.isUpperCase(poolName.charAt(0)) && Character.isLowerCase(poolName.charAt(1))) {
                     return Character.toLowerCase(poolName.charAt(0)) + poolName.substring(1);
                 } else {

@@ -25,12 +25,15 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * The result of an asynchronous {@link Channel} I/O operation.
+ * 异步操作
  * <p>
  * All I/O operations in Netty are asynchronous.  It means any I/O calls will
  * return immediately with no guarantee that the requested I/O operation has
  * been completed at the end of the call.  Instead, you will be returned with
  * a {@link ChannelFuture} instance which gives you the information about the
  * result or status of the I/O operation.
+ * Netty中的所有I / O操作都是异步的。这意味着任何I / O调用都将立即返回，而不能保证所请求的I / O操作已在调用结束时完成。
+ * 相反，将返回一个ChannelFuture实例，该实例为您提供有关I / O操作的结果或状态的信息。
  * <p>
  * A {@link ChannelFuture} is either <em>uncompleted</em> or <em>completed</em>.
  * When an I/O operation begins, a new future object is created.  The new future
@@ -40,6 +43,9 @@ import java.util.concurrent.TimeUnit;
  * marked as completed with more specific information, such as the cause of the
  * failure.  Please note that even failure and cancellation belong to the
  * completed state.
+ * ChannelFuture未完成或已完成。I / O操作开始时，将创建一个新的future对象。新的future最初并未完成-因为I / O操作尚未完成，
+ * 所以既不会成功，失败也不会取消。如果I / O操作成功完成，失败或通过取消完成，则将来标记为已完成，并带有更多特定信息，
+ * 例如失败原因。请注意，即使失败和取消也属于完成状态。
  * <pre>
  *                                      +---------------------------+
  *                                      | Completed successfully    |
@@ -63,12 +69,15 @@ import java.util.concurrent.TimeUnit;
  * completed, wait for the completion, and retrieve the result of the I/O
  * operation. It also allows you to add {@link ChannelFutureListener}s so you
  * can get notified when the I/O operation is completed.
+ * 提供了各种方法，可让您检查I / O操作是否已完成，等待完成以及检索I / O操作的结果。
+ * 它还允许您添加ChannelFutureListeners，以便在I / O操作完成时得到通知。
  *
  * <h3>Prefer {@link #addListener(GenericFutureListener)} to {@link #await()}</h3>
  *
  * It is recommended to prefer {@link #addListener(GenericFutureListener)} to
  * {@link #await()} wherever possible to get notified when an I/O operation is
  * done and to do any follow-up tasks.
+ * 建议在可能的情况下，首选addListener（GenericFutureListener）而不是await（），以便在完成I / O操作并执行任何后续任务时得到通知。
  * <p>
  * {@link #addListener(GenericFutureListener)} is non-blocking.  It simply adds
  * the specified {@link ChannelFutureListener} to the {@link ChannelFuture}, and
@@ -77,6 +86,9 @@ import java.util.concurrent.TimeUnit;
  * performance and resource utilization because it does not block at all, but
  * it could be tricky to implement a sequential logic if you are not used to
  * event-driven programming.
+ * addListener（GenericFutureListener）是非阻塞的。它只是将指定的ChannelFutureListener添加到ChannelFuture，
+ * 并且与将来关联的I / O操作完成时，I / O线程将通知侦听器。ChannelFutureListener完全不阻塞，因此可产生最佳的性能和资源利用率，
+ * 但是如果您不习惯事件驱动的编程，则实现顺序逻辑可能会比较棘手。
  * <p>
  * By contrast, {@link #await()} is a blocking operation.  Once called, the
  * caller thread blocks until the operation is done.  It is easier to implement
@@ -84,6 +96,8 @@ import java.util.concurrent.TimeUnit;
  * unnecessarily until the I/O operation is done and there's relatively
  * expensive cost of inter-thread notification.  Moreover, there's a chance of
  * dead lock in a particular circumstance, which is described below.
+ * 相反，await（）是阻塞操作。一旦被调用，调用者线程将阻塞直到操作完成。使用await（）实现顺序逻辑比较容易，
+ * 但是调用者线程会不必要地阻塞，直到完成I / O操作并且线程间通知的成本相对较高为止。此外，在特定情况下还可能出现死锁，这将在下面进行描述。
  *
  * <h3>Do not call {@link #await()} inside {@link ChannelHandler}</h3>
  * <p>
@@ -92,6 +106,9 @@ import java.util.concurrent.TimeUnit;
  * method, which is called by the I/O thread, the I/O operation it is waiting
  * for might never complete because {@link #await()} can block the I/O
  * operation it is waiting for, which is a dead lock.
+ * ChannelHandler中的事件处理程序方法通常由I / O线程调用。如果await（）是由I / O线程调用的事件处理程序方法调用的，
+ * 则它正在等待的I / O操作可能永远不会完成，因为await（）会阻塞它正在等待的I / O操作，这是一个死锁。
+ * /**所以不要在handler中进行await方法，handler通常被io线程调用， 造成死锁
  * <pre>
  * // BAD - NEVER DO THIS
  * {@code @Override}
@@ -119,8 +136,9 @@ import java.util.concurrent.TimeUnit;
  * where it is more convenient to call {@link #await()}. In such a case, please
  * make sure you do not call {@link #await()} in an I/O thread.  Otherwise,
  * {@link BlockingOperationException} will be raised to prevent a dead lock.
- *
- * <h3>Do not confuse I/O timeout and await timeout</h3>
+ * 尽管有上述缺点，但是在某些情况下，调用await（）更方便。在这种情况下，请确保不要在I / O线程中调用await（）。
+ * 否则，将引发BlockingOperationException来防止死锁。
+ * <h3>Do not confuse I/O timeout and await timeout</h3>不要混淆I / O超时并等待超时
  *
  * The timeout value you specify with {@link #await(long)},
  * {@link #await(long, TimeUnit)}, {@link #awaitUninterruptibly(long)}, or
@@ -128,6 +146,9 @@ import java.util.concurrent.TimeUnit;
  * timeout at all.  If an I/O operation times out, the future will be marked as
  * 'completed with failure,' as depicted in the diagram above.  For example,
  * connect timeout should be configured via a transport-specific option:
+ * 您使用Future.await（long），Future.await（long，TimeUnit），Future.awaitUninterruptible（long）
+ * 或Future.awaitUninterruptible（long，TimeUnit）
+ * 指定的超时值与I / O超时根本不相关。如果I / O操作超时，则将来将被标记为“失败完成”，如上图所示。例如，应通过特定于传输的选项配置连接超时：
  * <pre>
  * // BAD - NEVER DO THIS
  * {@link Bootstrap} b = ...;
@@ -167,6 +188,7 @@ public interface ChannelFuture extends Future<Void> {
     /**
      * Returns a channel where the I/O operation associated with this
      * future takes place.
+     * futrue会记录channel --触发io操作的channle
      */
     Channel channel();
 

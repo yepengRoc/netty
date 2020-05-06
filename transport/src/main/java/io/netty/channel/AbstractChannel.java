@@ -449,6 +449,11 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             return remoteAddress0();
         }
 
+        /**
+         * channel 注册的地方
+         * @param eventLoop
+         * @param promise
+         */
         @Override
         public final void register(EventLoop eventLoop, final ChannelPromise promise) {
             ObjectUtil.checkNotNull(eventLoop, "eventLoop");
@@ -463,7 +468,17 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             }
 
             AbstractChannel.this.eventLoop = eventLoop;
-
+            /**
+             * //判断当前调用逻辑的线程是不是singlethreaeventgroup中记录的线程
+             * 是的话，直接执行注册
+             * 不是的话，则新起一个线程任务去注册。规避多线程并发问题
+             * 说明：
+             * 一个EventLoopGroup当中包含一个或多个Eventloop
+             * 一个eventloop在它的整个生命周期都只会与唯一一个thread进行绑定
+             * 所有由eventloop所处理的各种i o事件都将在它所关联的呢个thread上进行处理
+             * 一个channel在它的整个生命周期中只会注册在一个eventloop上
+             * 一个eventloop在运行当中，会被分配给一个或多个channel上
+             */
             if (eventLoop.inEventLoop()) {
                 register0(promise);
             } else {
@@ -499,15 +514,15 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
 
                 // Ensure we call handlerAdded(...) before we actually notify the promise. This is needed as the
                 // user may already fire events through the pipeline in the ChannelFutureListener.
-                pipeline.invokeHandlerAddedIfNeeded();
+                pipeline.invokeHandlerAddedIfNeeded();//执行相应的回调
 
                 safeSetSuccess(promise);
-                pipeline.fireChannelRegistered();
+                pipeline.fireChannelRegistered();////执行相应的回调
                 // Only fire a channelActive if the channel has never been registered. This prevents firing
                 // multiple channel actives if the channel is deregistered and re-registered.
                 if (isActive()) {
                     if (firstRegistration) {
-                        pipeline.fireChannelActive();
+                        pipeline.fireChannelActive();//执行相应的回调
                     } else if (config().isAutoRead()) {
                         // This channel was registered before and autoRead() is set. This means we need to begin read
                         // again so that we process inbound data.

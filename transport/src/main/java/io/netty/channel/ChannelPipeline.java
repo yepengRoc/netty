@@ -34,11 +34,12 @@ import java.util.NoSuchElementException;
  * <a href="http://www.oracle.com/technetwork/java/interceptingfilter-142169.html">Intercepting Filter</a> pattern
  * to give a user full control over how an event is handled and how the {@link ChannelHandler}s in a pipeline
  * interact with each other.
- *
+ *ChannelHandler的列表，用于处理或拦截Channel的入站事件和出站操作。
+ * ChannelPipeline实现了Intercepting Filter模式的高级形式，以使用户可以完全控制事件的处理方式以及管道中的ChannelHandlers如何交互。
  * <h3>Creation of a pipeline</h3>
  *
  * Each channel has its own pipeline and it is created automatically when a new channel is created.
- *
+ *每个通道都有其自己的管道，并且在创建新通道时会自动创建它。
  * <h3>How an event flows in a pipeline</h3>
  *
  * The following diagram describes how I/O events are processed by {@link ChannelHandler}s in a {@link ChannelPipeline}
@@ -46,6 +47,9 @@ import java.util.NoSuchElementException;
  * and be forwarded to its closest handler by calling the event propagation methods defined in
  * {@link ChannelHandlerContext}, such as {@link ChannelHandlerContext#fireChannelRead(Object)} and
  * {@link ChannelHandlerContext#write(Object)}.
+ * 下图描述了ChannelPipeline中的ChannelHandler通常如何处理I / O事件。I / O事件由ChannelInboundHandler或ChannelOutboundHandler处理，
+ * 并通过调用ChannelHandlerContext中定义的事件传播方法（例如ChannelHandlerContext.fireChannelRead（Object）
+ * 和ChannelOutboundInvoker.write（Object））转发到其最近的处理程序。
  *
  * <pre>
  *                                                 I/O Request
@@ -92,12 +96,19 @@ import java.util.NoSuchElementException;
  * diagram.  The inbound data is often read from a remote peer via the actual input operation such as
  * {@link SocketChannel#read(ByteBuffer)}.  If an inbound event goes beyond the top inbound handler, it is discarded
  * silently, or logged if it needs your attention.
+ * 入站事件由入站处理程序按自下而上的方向进行处理，如图中左侧所示。入站处理程序通常处理图底部的I / O线程生成的入站数据。
+ * 通常通过实际的输入操作（例如SocketChannel.read（ByteBuffer））从远程对等方读取入站数据。如果入站事件超出了顶部入站处理程序的范围，
+ * 则将其静默丢弃，或者在需要引起注意时记录下来。
+ *
  * <p>
  * An outbound event is handled by the outbound handler in the top-down direction as shown on the right side of the
  * diagram.  An outbound handler usually generates or transforms the outbound traffic such as write requests.
  * If an outbound event goes beyond the bottom outbound handler, it is handled by an I/O thread associated with the
  * {@link Channel}. The I/O thread often performs the actual output operation such as
  * {@link SocketChannel#write(ByteBuffer)}.
+ * 出站事件由出站处理程序按自上而下的方向进行处理，如图中右侧所示。
+ * 出站处理程序通常会生成或转换出站流量，例如写请求。如果出站事件超出了底部出站处理程序，则由与通道关联的I / O线程处理。
+ * I / O线程通常执行实际的输出操作，例如SocketChannel.write（ByteBuffer）。
  * <p>
  * For example, let us assume that we created the following pipeline:
  * <pre>
@@ -110,10 +121,13 @@ import java.util.NoSuchElementException;
  * </pre>
  * In the example above, the class whose name starts with {@code Inbound} means it is an inbound handler.
  * The class whose name starts with {@code Outbound} means it is a outbound handler.
+ * 在上面的示例中，其名称以Inbound开头的类表示它是一个入站处理程序。名称以Outbound开头的类表示它是一个出站处理程序。
  * <p>
  * In the given example configuration, the handler evaluation order is 1, 2, 3, 4, 5 when an event goes inbound.
  * When an event goes outbound, the order is 5, 4, 3, 2, 1.  On top of this principle, {@link ChannelPipeline} skips
  * the evaluation of certain handlers to shorten the stack depth:
+ * 在给定的示例配置中，事件进入时，处理程序评估顺序为1、2、3、4、5。当事件出站时，顺序为5、4、3、2、1。最重要的是，
+ * ChannelPipeline跳过对某些处理程序的求值以缩短堆栈深度：
  * <ul>
  * <li>3 and 4 don't implement {@link ChannelInboundHandler}, and therefore the actual evaluation order of an inbound
  *     event will be: 1, 2, and 5.</li>
@@ -122,11 +136,15 @@ import java.util.NoSuchElementException;
  * <li>If 5 implements both {@link ChannelInboundHandler} and {@link ChannelOutboundHandler}, the evaluation order of
  *     an inbound and a outbound event could be 125 and 543 respectively.</li>
  * </ul>
+ * 3和4没有实现ChannelInboundHandler，因此入站事件的实际评估顺序为：1、2和5。
+ * 1和2没有实现ChannelOutboundHandler，因此出站事件的实际评估顺序为：5、4和3。
+ * 如果5同时实现ChannelInboundHandler和ChannelOutboundHandler，则入站和出站事件的评估顺序可能分别为125和543。
  *
  * <h3>Forwarding an event to the next handler</h3>
  *
  * As you might noticed in the diagram shows, a handler has to invoke the event propagation methods in
  * {@link ChannelHandlerContext} to forward an event to its next handler.  Those methods include:
+ * 如您在图中所示，您可能会注意到，处理程序必须调用ChannelHandlerContext中的事件传播方法，以将事件转发到其下一个处理程序。这些方法包括：
  * <ul>
  * <li>Inbound event propagation methods:
  *     <ul>
@@ -181,7 +199,8 @@ import java.util.NoSuchElementException;
  * to request I/O operations (e.g. write and close).  For example, a typical server will have the following handlers
  * in each channel's pipeline, but your mileage may vary depending on the complexity and characteristics of the
  * protocol and business logic:
- *
+ *假定用户在管道中具有一个或多个ChannelHandler，以接收I / O事件（例如，读取）并请求I / O操作（例如，写入和关闭）。
+ * 例如，典型的服务器在每个通道的管道中将具有以下处理程序，但是您的里程可能会根据协议和业务逻辑的复杂性和特征而有所不同：
  * <ol>
  * <li>Protocol Decoder - translates binary data (e.g. {@link ByteBuf}) into a Java object.</li>
  * <li>Protocol Encoder - translates a Java object into binary data.</li>
@@ -212,6 +231,7 @@ import java.util.NoSuchElementException;
  * A {@link ChannelHandler} can be added or removed at any time because a {@link ChannelPipeline} is thread safe.
  * For example, you can insert an encryption handler when sensitive information is about to be exchanged, and remove it
  * after the exchange.
+ * 由于ChannelPipeline是线程安全的，因此可以随时添加或删除ChannelHandler。例如，您可以在即将交换敏感信息时插入加密处理程序，并在交换后将其删除。
  */
 public interface ChannelPipeline
         extends ChannelInboundInvoker, ChannelOutboundInvoker, Iterable<Entry<String, ChannelHandler>> {

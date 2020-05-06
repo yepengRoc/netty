@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @param <T> the type of the constant
  */
 public abstract class ConstantPool<T extends Constant<T>> {
-
+    //concurrenthashmap
     private final ConcurrentMap<String, T> constants = PlatformDependent.newConcurrentHashMap();
 
     private final AtomicInteger nextId = new AtomicInteger(1);
@@ -65,8 +65,9 @@ public abstract class ConstantPool<T extends Constant<T>> {
         T constant = constants.get(name);
         if (constant == null) {
             final T tempConstant = newConstant(nextId(), name);
-            constant = constants.putIfAbsent(name, tempConstant);
-            if (constant == null) {
+            //返回先前的值
+            constant = constants.putIfAbsent(name, tempConstant);//有可能两个线程同时放一个值，一个放成功了，一个没有放成功了
+            if (constant == null) {//双重检测
                 return tempConstant;
             }
         }

@@ -33,6 +33,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * {@link ServerBootstrap#handler(ChannelHandler)} and {@link ServerBootstrap#childHandler(ChannelHandler)} to
  * setup the {@link ChannelPipeline} of a {@link Channel}.
  *
+ * 特殊的ChannelInboundHandler，提供了一种轻松的方法来将Channel注册到其EventLoop后对其进行初始化。
+ * 实现通常在AbstractBootstrap.handler（ChannelHandler），AbstractBootstrap.handler（ChannelHandler）
+ * 和ServerBootstrap.childHandler（ChannelHandler）的上下文中使用，以设置通道的ChannelPipeline。
  * <pre>
  *
  * public class MyChannelInitializer extends {@link ChannelInitializer} {
@@ -62,6 +65,7 @@ public abstract class ChannelInitializer<C extends Channel> extends ChannelInbou
     /**
      * This method will be called once the {@link Channel} was registered. After the method returns this instance
      * will be removed from the {@link ChannelPipeline} of the {@link Channel}.
+     * channel注册的时候会被调用，当结果返回后会被移除掉
      *
      * @param ch            the {@link Channel} which was registered.
      * @throws Exception    is thrown if an error occurs. In that case it will be handled by

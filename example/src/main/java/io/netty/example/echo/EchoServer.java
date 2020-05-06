@@ -71,10 +71,10 @@ public final class EchoServer {
              });
 
             // Start the server.
-            ChannelFuture f = b.bind(PORT).sync();
+            ChannelFuture f = b.bind(PORT).sync();//必须调用sync，确保连接已经连接
 
             // Wait until the server socket is closed.
-            f.channel().closeFuture().sync();
+            f.channel().closeFuture().sync();//如果发起了关闭，则会执行此操作。sync进行保证
         } finally {
             // Shut down all event loops to terminate all threads.
             bossGroup.shutdownGracefully();

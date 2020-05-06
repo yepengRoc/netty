@@ -30,6 +30,7 @@ import java.net.NetworkInterface;
  * to.
  *
  * @param <T>   the type of the value which is valid for the {@link ChannelOption}
+ *  ChannelOption允许以类型安全的方式配置ChannelConfig。支持哪个ChannelOption取决于ChannelConfig的实际实现，并且可能取决于它所属的传输的性质。
  */
 public class ChannelOption<T> extends AbstractConstant<ChannelOption<T>> {
     /**

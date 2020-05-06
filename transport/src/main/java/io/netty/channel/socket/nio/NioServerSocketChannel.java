@@ -42,6 +42,7 @@ import java.util.Map;
 /**
  * A {@link io.netty.channel.socket.ServerSocketChannel} implementation which uses
  * NIO selector based implementation to accept new connections.
+ * 就是一个selector
  */
 public class NioServerSocketChannel extends AbstractNioMessageChannel
                              implements io.netty.channel.socket.ServerSocketChannel {
@@ -58,6 +59,8 @@ public class NioServerSocketChannel extends AbstractNioMessageChannel
              *  {@link SelectorProvider#provider()} which is called by each ServerSocketChannel.open() otherwise.
              *
              *  See <a href="https://github.com/netty/netty/issues/2308">#2308</a>.
+             *  当前，每次创建新通道时都会调用SelectorProvider＃provider（包含同步块）。
+             *  当应用程序创建大量连接时，这可能导致不必要的阻塞（每秒创建5000个连接时，性能损失约为1％）。
              */
             return provider.openServerSocketChannel();
         } catch (IOException e) {
@@ -70,6 +73,7 @@ public class NioServerSocketChannel extends AbstractNioMessageChannel
 
     /**
      * Create a new instance
+     * 反射-调用不带参数的构造函数
      */
     public NioServerSocketChannel() {
         this(newSocket(DEFAULT_SELECTOR_PROVIDER));
@@ -84,6 +88,8 @@ public class NioServerSocketChannel extends AbstractNioMessageChannel
 
     /**
      * Create a new instance using the given {@link ServerSocketChannel}.
+     *
+     * 这个方法的链路里 创建了 pipleline-在父类abstractchannle中创建
      */
     public NioServerSocketChannel(ServerSocketChannel channel) {
         super(null, channel, SelectionKey.OP_ACCEPT);

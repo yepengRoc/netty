@@ -21,13 +21,16 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * The result of an asynchronous operation.
+ * 异步操作的结果
  */
 @SuppressWarnings("ClassNameSameAsAncestorName")
 public interface Future<V> extends java.util.concurrent.Future<V> {
 
     /**
+     *
      * Returns {@code true} if and only if the I/O operation was completed
      * successfully.
+     * 只有真正成功了
      */
     boolean isSuccess();
 
@@ -51,6 +54,7 @@ public interface Future<V> extends java.util.concurrent.Future<V> {
      * specified listener is notified when this future is
      * {@linkplain #isDone() done}.  If this future is already
      * completed, the specified listener is notified immediately.
+     * 添加指定监听。如果isDone() 操作完成，则触发监听
      */
     Future<V> addListener(GenericFutureListener<? extends Future<? super V>> listener);
 
@@ -59,6 +63,7 @@ public interface Future<V> extends java.util.concurrent.Future<V> {
      * specified listeners are notified when this future is
      * {@linkplain #isDone() done}.  If this future is already
      * completed, the specified listeners are notified immediately.
+     * 添加多个监听
      */
     Future<V> addListeners(GenericFutureListener<? extends Future<? super V>>... listeners);
 
@@ -83,6 +88,7 @@ public interface Future<V> extends java.util.concurrent.Future<V> {
     /**
      * Waits for this future until it is done, and rethrows the cause of the failure if this future
      * failed.
+     * 同步等待
      */
     Future<V> sync() throws InterruptedException;
 
@@ -156,6 +162,8 @@ public interface Future<V> extends java.util.concurrent.Future<V> {
      *
      * As it is possible that a {@code null} value is used to mark the future as successful you also need to check
      * if the future is really done with {@link #isDone()} and not rely on the returned {@code null} value.
+     * 非阻塞式的返回，没有完成则返回null.
+     * runnable无返回值。则需要则通过isDone来确认真的完成了
      */
     V getNow();
 

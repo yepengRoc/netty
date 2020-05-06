@@ -21,6 +21,7 @@ import io.netty.util.concurrent.Promise;
 
 /**
  * Special {@link ChannelFuture} which is writable.
+ * 特定的 ChannelFuture
  */
 public interface ChannelPromise extends ChannelFuture, Promise<Void> {
 
@@ -28,7 +29,7 @@ public interface ChannelPromise extends ChannelFuture, Promise<Void> {
     Channel channel();
 
     @Override
-    ChannelPromise setSuccess(Void result);
+    ChannelPromise setSuccess(Void result);//可进行写入
 
     ChannelPromise setSuccess();
 

@@ -57,6 +57,7 @@ public interface ChannelInboundHandler extends ChannelHandler {
 
     /**
      * Gets called if an user event was triggered.
+     * 用户自己定义事件
      */
     void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception;
 

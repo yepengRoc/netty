@@ -28,24 +28,28 @@ import java.nio.channels.Channels;
  * Enables a {@link ChannelHandler} to interact with its {@link ChannelPipeline}
  * and other handlers. Among other things a handler can notify the next {@link ChannelHandler} in the
  * {@link ChannelPipeline} as well as modify the {@link ChannelPipeline} it belongs to dynamically.
- *
+ * 使ChannelHandler与其ChannelPipeline和其他处理程序进行交互。处理程序除其他外，
+ * 可以通知ChannelPipeline中的下一个ChannelHandler以及动态修改其所属的ChannelPipeline。
  * <h3>Notify</h3>
  *
  * You can notify the closest handler in the same {@link ChannelPipeline} by calling one of the various methods
  * provided here.
+ * 您可以通过调用此处提供的各种方法之一来通知同一ChannelPipeline中最接近的处理程序。
  *
  * Please refer to {@link ChannelPipeline} to understand how an event flows.
- *
+ *请参考ChannelPipeline以了解事件的流向。
  * <h3>Modifying a pipeline</h3>
  *
  * You can get the {@link ChannelPipeline} your handler belongs to by calling
  * {@link #pipeline()}.  A non-trivial application could insert, remove, or
  * replace handlers in the pipeline dynamically at runtime.
+ * 您可以通过调用pipeline（）来获取处理程序所属的ChannelPipeline。一个非平凡的应用程序可以在运行时动态地在管道中插入，删除或替换处理程序。
  *
  * <h3>Retrieving for later use</h3>
  *
  * You can keep the {@link ChannelHandlerContext} for later use, such as
  * triggering an event outside the handler methods, even from a different thread.
+ * 您可以保留ChannelHandlerContext供以后使用，例如在处理程序方法外部触发事件，即使是从其他线程触发也是如此。
  * <pre>
  * public class MyHandler extends {@link ChannelDuplexHandler} {
  *
@@ -68,8 +72,10 @@ import java.nio.channels.Channels;
  * store and access stateful information that is related with a handler and its
  * context.  Please refer to {@link ChannelHandler} to learn various recommended
  * ways to manage stateful information.
+ * attr（AttributeKey）允许您存储和访问与处理程序及其上下文相关的有状态信息。
+ * 请参考ChannelHandler来学习各种推荐的管理状态信息的方法。
  *
- * <h3>A handler can have more than one context</h3>
+ * <h3>A handler can have more than one context</h3>一个处理程序可以具有多个上下文
  *
  * Please note that a {@link ChannelHandler} instance can be added to more than
  * one {@link ChannelPipeline}.  It means a single {@link ChannelHandler}
@@ -77,10 +83,13 @@ import java.nio.channels.Channels;
  * the single instance can be invoked with different
  * {@link ChannelHandlerContext}s if it is added to one or more
  * {@link ChannelPipeline}s more than once.
+ * 请注意，可以将ChannelHandler实例添加到多个ChannelPipeline中。这意味着一个ChannelHandler实例可以具有多个ChannelHandlerContext，
+ * 因此，如果将一个实例多次添加到一个或多个ChannelPipelines中，则可以使用不同的ChannelHandlerContext调用该实例。
  * <p>
  * For example, the following handler will have as many independent {@link AttributeKey}s
  * as how many times it is added to pipelines, regardless if it is added to the
  * same pipeline multiple times or added to different pipelines multiple times:
+ * 例如，以下处理程序将具有与添加到管道中的次数一样多的独立AttributeKey，无论它是多次添加到同一管道还是多次添加到不同的管道：
  * <pre>
  * public class FactorialHandler extends {@link ChannelInboundHandlerAdapter} {
  *
@@ -121,6 +130,8 @@ import java.nio.channels.Channels;
  * {@link ChannelPipeline} to find out more about inbound and outbound operations,
  * what fundamental differences they have, how they flow in a  pipeline,  and how to handle
  * the operation in your application.
+ * 请参考ChannelHandler和ChannelPipeline，以了解有关入站和出站操作，它们之间有什么根本区别，
+ * 它们如何在管道中流动以及如何在应用程序中处理该操作的更多信息。
  */
 public interface ChannelHandlerContext extends AttributeMap, ChannelInboundInvoker, ChannelOutboundInvoker {
 

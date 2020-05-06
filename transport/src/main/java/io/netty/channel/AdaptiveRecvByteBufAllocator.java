@@ -25,12 +25,15 @@ import static java.lang.Math.min;
 /**
  * The {@link RecvByteBufAllocator} that automatically increases and
  * decreases the predicted buffer size on feed back.
+ * RecvByteBufAllocator在反馈时自动增加和减少预测的缓冲区大小。
  * <p>
  * It gradually increases the expected number of readable bytes if the previous
  * read fully filled the allocated buffer.  It gradually decreases the expected
  * number of readable bytes if the read operation was not able to fill a certain
  * amount of the allocated buffer two times consecutively.  Otherwise, it keeps
  * returning the same prediction.
+ * 如果先前的读取完全填满了分配的缓冲区，它将逐渐增加预期的可读字节数。如果读取操作无法连续两次填充一定数量的已分配缓冲区，
+ * 则会逐渐减少预期的可读字节数。否则，它将继续返回相同的预测。
  */
 public class AdaptiveRecvByteBufAllocator extends DefaultMaxMessagesRecvByteBufAllocator {
 
@@ -44,6 +47,9 @@ public class AdaptiveRecvByteBufAllocator extends DefaultMaxMessagesRecvByteBufA
     private static final int[] SIZE_TABLE;
 
     static {
+        /**
+         * 按照从小到大 要分配的空间大小。
+         */
         List<Integer> sizeTable = new ArrayList<Integer>();
         for (int i = 16; i < 512; i += 16) {
             sizeTable.add(i);
@@ -110,6 +116,8 @@ public class AdaptiveRecvByteBufAllocator extends DefaultMaxMessagesRecvByteBufA
             // This helps adjust more quickly when large amounts of data is pending and can avoid going back to
             // the selector to check for more data. Going back to the selector can add significant latency for large
             // data transfers.
+//            如果我们阅读的内容与要求的一样多，则应检查是否需要增加下一个猜测的大小。
+//            当有大量数据挂起时，这有助于更快地进行调整，并且可以避免返回选择器以检查更多数据。返回选择器可能会增加大量数据传输的延迟。
             if (bytes == attemptedBytesRead()) {
                 record(bytes);
             }

@@ -29,10 +29,11 @@ import java.util.Arrays;
 /**
  * Creates a new {@link ByteBuf} by allocating new space or by wrapping
  * or copying existing byte arrays, byte buffers and a string.
+ * 通过分配新空间或通过包装或复制现有的字节数组，字节缓冲区和字符串来创建新的ByteBuf。
  *
  * <h3>Use static import</h3>
  * This classes is intended to be used with Java 5 static import statement:
- *
+ *此类旨在与Java 5静态import语句一起使用：
  * <pre>
  * import static io.netty.buffer.{@link Unpooled}.*;
  *
@@ -60,6 +61,9 @@ import java.util.Arrays;
  * You might want to take a look at the methods that accept varargs closely if
  * you want to create a buffer which is composed of more than one array to
  * reduce the number of memory copy.
+ * 包装缓冲区是一种缓冲区，它是一个或多个现有字节数组和字节缓冲区的视图。原始数组或缓冲区内容的任何更改都将在包装的缓冲区中可见。
+ * 提供了各种包装器方法，它们的名称全为wrappedBuffer（）。如果您要创建一个缓冲区，该缓冲区由多个数组组成，以减少内存副本的数量，
+ * 则可能需要仔细看看接受varargs的方法。
  *
  * <h3>Creating a copied buffer</h3>
  *
@@ -68,6 +72,8 @@ import java.util.Arrays;
  * between the original data and the copied buffer.  Various copy methods are
  * provided and their name is all {@code copiedBuffer()}.  It is also convenient
  * to use this operation to merge multiple buffers into one buffer.
+ * 复制的缓冲区是一个或多个现有字节数组，字节缓冲区或字符串的深层副本。与包装的缓冲区不同，
+ * 原始数据和复制的缓冲区之间没有共享数据。提供了各种复制方法，它们的名称全为copyedBuffer（）。使用此操作将多个缓冲区合并为一个缓冲区也很方便。
  */
 public final class Unpooled {
 
@@ -340,6 +346,7 @@ public final class Unpooled {
 
     /**
      * Returns a new big-endian composite buffer with no components.
+     * 每个byte为一个component称为
      */
     public static CompositeByteBuf compositeBuffer() {
         return compositeBuffer(AbstractByteBufAllocator.DEFAULT_MAX_COMPONENTS);

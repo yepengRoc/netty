@@ -1,18 +1,4 @@
-/*
- * Copyright 2012 The Netty Project
- *
- * The Netty Project licenses this file to you under the Apache License,
- * version 2.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations
- * under the License.
- */
+
 package io.netty.handler.codec;
 
 import io.netty.buffer.ByteBuf;
@@ -28,6 +14,7 @@ import java.util.List;
 /**
  * A specialized variation of {@link ByteToMessageDecoder} which enables implementation
  * of a non-blocking decoder in the blocking I/O paradigm.
+ * ByteToMessageDecoder的一种特殊变体，它可以在阻塞I / O范例中实现非阻塞解码器。
  * <p>
  * The biggest difference between {@link ReplayingDecoder} and
  * {@link ByteToMessageDecoder} is that {@link ReplayingDecoder} allows you to
@@ -35,6 +22,8 @@ import java.util.List;
  * all required bytes were received already, rather than checking the
  * availability of the required bytes.  For example, the following
  * {@link ByteToMessageDecoder} implementation:
+ * ReplayingDecoder和ByteToMessageDecoder之间的最大区别在于，ReplayingDecoder允许您像已收到所有必需的字节一样实现decode（）
+ * 和decodeLast（）方法，而不是检查所需字节的可用性。例如，以下ByteToMessageDecoder实现：
  * <pre>
  * public class IntegerHeaderFrameDecoder extends {@link ByteToMessageDecoder} {
  *
@@ -85,24 +74,34 @@ import java.util.List;
  * back to the 'initial' position (i.e. the beginning of the buffer) and call
  * the {@code decode(..)} method again when more data is received into the
  * buffer.
+ * ReplayingDecoder传递了一个专门的ByteBuf实现，当缓冲区中的数据不足时，该实现将引发某种类型的Error。
+ * 在上面的IntegerHeaderFrameDecoder中，您仅假设调用buf.readInt（）时缓冲区中将有4个或更多字节。
+ * 如果缓冲区中确实有4个字节，它将返回您期望的整数头。否则，将引发Error并将控件返回给ReplayingDecoder。
+ * 如果ReplayingDecoder捕获到错误，则它将把缓冲区的readerIndex倒回到“初始”位置（即缓冲区的开头），
+ * 并在缓冲区中接收到更多数据时再次调用encode（..）方法。
  * <p>
  * Please note that {@link ReplayingDecoder} always throws the same cached
  * {@link Error} instance to avoid the overhead of creating a new {@link Error}
  * and filling its stack trace for every throw.
+ * 请注意，ReplayingDecoder总是抛出相同的缓存Error实例，以避免创建新Error并为每次抛出填充其堆栈跟踪的开销。
  *
  * <h3>Limitations</h3>
  * <p>
  * At the cost of the simplicity, {@link ReplayingDecoder} enforces you a few
  * limitations:
+ * 以简单为代价，ReplayingDecoder强制您执行一些限制：
  * <ul>
  * <li>Some buffer operations are prohibited.</li>
+ * 禁止某些缓冲区操作。
  * <li>Performance can be worse if the network is slow and the message
  *     format is complicated unlike the example above.  In this case, your
  *     decoder might have to decode the same part of the message over and over
  *     again.</li>
+ *     如果网络速度慢并且消息格式复杂，则性能可能会变差，与上面的示例不同。在这种情况下，您的解码器可能不得不一遍又一遍地解码消息的相同部分。
  * <li>You must keep in mind that {@code decode(..)} method can be called many
  *     times to decode a single message.  For example, the following code will
  *     not work:
+ *     您必须记住，可以多次调用encode（..）方法来解码一条消息。例如，以下代码将不起作用：
  * <pre> public class MyDecoder extends {@link ReplayingDecoder}&lt;{@link Void}&gt; {
  *
  *   private final Queue&lt;Integer&gt; values = new LinkedList&lt;Integer&gt;();
@@ -123,6 +122,7 @@ import java.util.List;
  *      The correct implementation looks like the following, and you can also
  *      utilize the 'checkpoint' feature which is explained in detail in the
  *      next section.
+ *      正确的实现如下所示，并且您还可以利用“检查点”功能，下一部分将对其进行详细说明。
  * <pre> public class MyDecoder extends {@link ReplayingDecoder}&lt;{@link Void}&gt; {
  *
  *   private final Queue&lt;Integer&gt; values = new LinkedList&lt;Integer&gt;();
@@ -153,6 +153,8 @@ import java.util.List;
  * {@code checkpoint()} method updates the 'initial' position of the buffer so
  * that {@link ReplayingDecoder} rewinds the {@code readerIndex} of the buffer
  * to the last position where you called the {@code checkpoint()} method.
+ * 幸运的是，使用checkpoint（）方法可以显着提高复杂解码器实现的性能。checkpoint（）方法更新缓冲区的“初始”位置，
+ * 以便ReplayingDecoder将缓冲区的readerIndex倒退到调用checkpoint（）方法的最后位置。
  *
  * <h4>Calling {@code checkpoint(T)} with an {@link Enum}</h4>
  * <p>
@@ -162,7 +164,8 @@ import java.util.List;
  * of the decoder and to call {@code checkpoint(T)} method whenever the state
  * changes.  You can have as many states as you want depending on the
  * complexity of the message you want to decode:
- *
+ *尽管您可以只使用checkpoint（）方法并自己管理解码器的状态，但是管理解码器状态的最简单方法是创建一个Enum类型来表示
+ * 解码器的当前状态并调用checkpoint（T）状态改变时的方法。您可以根据需要解码的消息的复杂性，根据需要设置任意多个状态：
  * <pre>
  * public enum MyDecoderState {
  *   READ_LENGTH,
@@ -201,6 +204,7 @@ import java.util.List;
  * <h4>Calling {@code checkpoint()} with no parameter</h4>
  * <p>
  * An alternative way to manage the decoder state is to manage it by yourself.
+ * 管理解码器状态的另一种方法是自己管理。
  * <pre>
  * public class IntegerHeaderFrameDecoder
  *      extends {@link ReplayingDecoder}&lt;<strong>{@link Void}</strong>&gt; {
@@ -227,7 +231,7 @@ import java.util.List;
  * }
  * </pre>
  *
- * <h3>Replacing a decoder with another decoder in a pipeline</h3>
+ * <h3>Replacing a decoder with another decoder in a pipeline</h3>用流水线中的另一个解码器替换一个解码器
  * <p>
  * If you are going to write a protocol multiplexer, you will probably want to
  * replace a {@link ReplayingDecoder} (protocol detector) with another
@@ -236,6 +240,9 @@ import java.util.List;
  * It is not possible to achieve this simply by calling
  * {@link ChannelPipeline#replace(ChannelHandler, String, ChannelHandler)}, but
  * some additional steps are required:
+ * 如果要编写协议多路复用器，则可能要用另一个ReplayingDecoder，ByteToMessageDecoder或MessageToMessageDecoder（实际协议解码器）
+ * 替换ReplayingDecoder（协议检测器）。不能仅通过调用ChannelPipeline.replace（ChannelHandler，String，ChannelHandler）来实现此目的，
+ * 但是需要一些其他步骤：
  * <pre>
  * public class FirstDecoder extends {@link ReplayingDecoder}&lt;{@link Void}&gt; {
  *

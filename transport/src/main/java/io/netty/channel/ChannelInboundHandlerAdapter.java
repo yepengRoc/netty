@@ -29,6 +29,8 @@ import io.netty.channel.ChannelHandlerMask.Skip;
  * Be aware that messages are not released after the {@link #channelRead(ChannelHandlerContext, Object)}
  * method returns automatically. If you are looking for a {@link ChannelInboundHandler} implementation that
  * releases the received messages automatically, please see {@link SimpleChannelInboundHandler}.
+ * 请注意，{@ link #channelRead（ChannelHandlerContext，Object）}方法自动返回后，不会释放消息。
+*   如果您正在寻找自动释放接收到的消息的{@link ChannelInboundHandler}实现，请参阅{@link SimpleChannelInboundHandler}。
  * </p>
  */
 public class ChannelInboundHandlerAdapter extends ChannelHandlerAdapter implements ChannelInboundHandler {

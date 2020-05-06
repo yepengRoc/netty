@@ -241,6 +241,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
 
     /**
      * Create a new {@link Channel} and bind it.
+     * 创建新的channel 绑定
      */
     public ChannelFuture bind(int inetPort) {
         return bind(new InetSocketAddress(inetPort));
@@ -264,7 +265,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
      * Create a new {@link Channel} and bind it.
      */
     public ChannelFuture bind(SocketAddress localAddress) {
-        validate();
+        validate();//参数验证
         return doBind(ObjectUtil.checkNotNull(localAddress, "localAddress"));
     }
 
@@ -272,8 +273,12 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
      * 进行绑定操作
      * @param localAddress
      * @return
+     * 重要方法
      */
     private ChannelFuture doBind(final SocketAddress localAddress) {
+        /**
+         * 初始化和注册
+         */
         final ChannelFuture regFuture = initAndRegister();
         final Channel channel = regFuture.channel();
         if (regFuture.cause() != null) {
@@ -316,6 +321,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
     final ChannelFuture initAndRegister() {
         Channel channel = null;
         try {
+            //创建一个nioserversocketchannel
             channel = channelFactory.newChannel();
             //初始化channel
             init(channel);
@@ -347,7 +353,11 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
         //    i.e. It's safe to attempt bind() or connect() now:
         //         because bind() or connect() will be executed *after* the scheduled registration task is executed
         //         because register(), bind(), and connect() are all bound to the same thread.
-
+        //如果我们在这里，但诺言未失败，则是以下情况之一：
+        // 1）如果我们尝试从事件循环中进行注册，则此时注册已完成。即现在尝试绑定（）或connect（）是安全的，因为通道已注册。
+        // 2）如果我们尝试从另一个线程进行注册，则注册请求已成功添加到事件循环的任务队列中，以便以后执行。
+        // 即现在尝试bind（）或connect（）是安全的：因为bind（）或connect（）将在计划的注册任务执行后*执行，
+        // 因为register（），bind（）和connect（）都已绑定到同一线程。
         return regFuture;
     }
 

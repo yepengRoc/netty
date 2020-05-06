@@ -195,7 +195,7 @@ import java.nio.charset.UnsupportedCharsetException;
  *
  * You can create a view of an existing buffer by calling one of the following methods:
  * <ul>
- *   <li>{@link #duplicate()}</li>
+ *   <li>{@link #duplicate()}</li>浅复制
  *   <li>{@link #slice()}</li>
  *   <li>{@link #slice(int, int)}</li>
  *   <li>{@link #readSlice(int)}</li>

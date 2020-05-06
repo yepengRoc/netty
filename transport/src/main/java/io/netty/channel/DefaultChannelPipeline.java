@@ -89,6 +89,11 @@ public class DefaultChannelPipeline implements ChannelPipeline {
      */
     private boolean registered;
 
+    /**
+     * nioserversocketchannel 会调用此方法。传入当前创建的chnnel
+     * 是一个双向链表。
+     * @param channel
+     */
     protected DefaultChannelPipeline(Channel channel) {
         this.channel = ObjectUtil.checkNotNull(channel, "channel");
         succeededFuture = new SucceededChannelFuture(channel, null);
@@ -208,6 +213,8 @@ public class DefaultChannelPipeline implements ChannelPipeline {
             // If the registered is false it means that the channel was not registered on an eventLoop yet.
             // In this case we add the context to the pipeline and add a task that will call
             // ChannelHandler.handlerAdded(...) once the channel is registered.
+            //如果注册为假，则表示该通道尚未在eventLoop上注册。在这种情况下，
+            // 我们将上下文添加到管道中，并添加一个任务，该任务将在注册通道后调用ChannelHandler.handlerAdded（...）。
             if (!registered) {
                 newCtx.setAddPending();
                 callHandlerCallbackLater(newCtx, true);

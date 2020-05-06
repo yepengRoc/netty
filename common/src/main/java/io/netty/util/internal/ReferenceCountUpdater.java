@@ -119,7 +119,7 @@ public abstract class ReferenceCountUpdater<T extends ReferenceCounted> {
     // rawIncrement == increment << 1
     private T retain0(T instance, final int increment, final int rawIncrement) {
         int oldRef = updater().getAndAdd(instance, rawIncrement);
-        if (oldRef != 2 && oldRef != 4 && (oldRef & 1) != 0) {
+        if (oldRef != 2 && oldRef != 4 && (oldRef & 1) != 0) {//要么是偶数 要么是0
             throw new IllegalReferenceCountException(0, increment);
         }
         // don't pass 0!
@@ -161,6 +161,12 @@ public abstract class ReferenceCountUpdater<T extends ReferenceCounted> {
     private boolean retryRelease0(T instance, int decrement) {
         for (;;) {
             int rawCnt = updater().get(instance), realCnt = toLiveRealRefCnt(rawCnt, decrement);
+            /**
+             * 多线程情况下
+             * 初始化 值为1
+             * 另外一个线程调用了release 此时实际为0
+             * 然后再当前线程+1 又变成1 了。所以会出现decrement == realCnt
+             */
             if (decrement == realCnt) {
                 if (tryFinalRelease0(instance, rawCnt)) {
                     return true;

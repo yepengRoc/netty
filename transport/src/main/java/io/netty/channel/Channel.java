@@ -30,6 +30,7 @@ import java.net.SocketAddress;
 /**
  * A nexus to a network socket or a component which is capable of I/O
  * operations such as read, write, connect, and bind.
+ * 与网络套接字或能够进行I / O操作（例如读取，写入，连接和绑定）的组件的联系。
  * <p>
  * A channel provides a user:
  * <ul>
@@ -39,6 +40,10 @@ import java.net.SocketAddress;
  * <li>the {@link ChannelPipeline} which handles all I/O events and requests
  *     associated with the channel.</li>
  * </ul>
+ * 通道的当前状态（例如，它是否已打开？是否已连接？），
+ * 通道的配置参数（例如接收缓冲区大小），
+ * 通道支持的I / O操作（例如，读取，写入，连接和绑定），以及
+ * ChannelPipeline，用于处理与通道关联的所有I / O事件和请求。
  *
  * <h3>All I/O operations are asynchronous.</h3>
  * <p>
@@ -47,6 +52,8 @@ import java.net.SocketAddress;
  * been completed at the end of the call.  Instead, you will be returned with
  * a {@link ChannelFuture} instance which will notify you when the requested I/O
  * operation has succeeded, failed, or canceled.
+ * Netty中的所有I / O操作都是异步的。这意味着任何I / O调用都将立即返回，而不能保证所请求的I / O操作已在调用结束时完成。
+ * 相反，将返回一个带有ChannelFuture实例的实例，该实例将在请求的I / O操作成功，失败或取消时通知您。
  *
  * <h3>Channels are hierarchical</h3>
  * <p>
@@ -54,25 +61,31 @@ import java.net.SocketAddress;
  * how it was created.  For instance, a {@link SocketChannel}, that was accepted
  * by {@link ServerSocketChannel}, will return the {@link ServerSocketChannel}
  * as its parent on {@link #parent()}.
+ * Channel可以具有父项，具体取决于其创建方式。例如，ServerSocketChannel接受的SocketChannel将返回ServerSocketChannel作为其parent（）的父级。
  * <p>
  * The semantics of the hierarchical structure depends on the transport
  * implementation where the {@link Channel} belongs to.  For example, you could
  * write a new {@link Channel} implementation that creates the sub-channels that
  * share one socket connection, as <a href="http://beepcore.org/">BEEP</a> and
  * <a href="http://en.wikipedia.org/wiki/Secure_Shell">SSH</a> do.
+ * 层次结构的语义取决于Channel所属的传输实现。例如，您可以编写一个新的Channel实现，
+ * 以创建共享一个套接字连接的子通道，就像BEEP和SSH一样。
  *
- * <h3>Downcast to access transport-specific operations</h3>
+ * <h3>Downcast to access transport-specific operations</h3>下调访问特定于传输的操作
  * <p>
  * Some transports exposes additional operations that is specific to the
  * transport.  Down-cast the {@link Channel} to sub-type to invoke such
  * operations.  For example, with the old I/O datagram transport, multicast
  * join / leave operations are provided by {@link DatagramChannel}.
- *
+ *某些传输公开了特定于该传输的其他操作。将Channel向下转换为子类型以调用此类操作。
+ * 例如，对于旧的I / O数据报传输，DatagramChannel提供了多播加入/离开操作。
  * <h3>Release resources</h3>
  * <p>
  * It is important to call {@link #close()} or {@link #close(ChannelPromise)} to release all
  * resources once you are done with the {@link Channel}. This ensures all resources are
  * released in a proper way, i.e. filehandles.
+ * 一旦完成Channel，调用ChannelOutboundInvoker.close（）或ChannelOutboundInvoker.close（ChannelPromise）释放所有资源非常重要。
+ * 这样可以确保以适当的方式（即文件句柄）释放所有资源。
  */
 public interface Channel extends AttributeMap, ChannelOutboundInvoker, Comparable<Channel> {
 
