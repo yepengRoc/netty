@@ -39,7 +39,7 @@ import java.util.NoSuchElementException;
  * <h3>Creation of a pipeline</h3>
  *
  * Each channel has its own pipeline and it is created automatically when a new channel is created.
- *每个通道都有其自己的管道，并且在创建新通道时会自动创建它。
+ *每个channel都有其自己的pipeline，并且在创建新通道时会自动创建它。
  * <h3>How an event flows in a pipeline</h3>
  *
  * The following diagram describes how I/O events are processed by {@link ChannelHandler}s in a {@link ChannelPipeline}
@@ -223,6 +223,8 @@ import java.util.NoSuchElementException;
  * // a time-consuming task.
  * // If your business logic is fully asynchronous or finished very quickly, you don't
  * // need to specify a group.
+ * 告诉管道在与I / O线程不同的线程中运行MyBusinessLogicHandler的事件处理程序方法* //，
+ * 以便使I / O线程不会被* //这很耗时的任务阻塞。 * //如果您的业务逻辑完全异步或很快完成，则无需// //指定组。
  * pipeline.addLast(group, "handler", new MyBusinessLogicHandler());
  * </pre>
  *

@@ -69,7 +69,9 @@ public class DefaultChannelConfig implements ChannelConfig {
     private volatile boolean pinEventExecutor = true;
 
     public DefaultChannelConfig(Channel channel) {
-        //AdaptiveRecvByteBufAllocator  解析
+        /**
+         *  AdaptiveRecvByteBufAllocator  解析
+         */
         this(channel, new AdaptiveRecvByteBufAllocator());
     }
 

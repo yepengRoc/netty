@@ -73,7 +73,7 @@ public class NioServerSocketChannel extends AbstractNioMessageChannel
 
     /**
      * Create a new instance
-     * 反射-调用不带参数的构造函数
+     * 反射-调用不带参数的构造函数 TODO
      */
     public NioServerSocketChannel() {
         this(newSocket(DEFAULT_SELECTOR_PROVIDER));
@@ -89,10 +89,19 @@ public class NioServerSocketChannel extends AbstractNioMessageChannel
     /**
      * Create a new instance using the given {@link ServerSocketChannel}.
      *
-     * 这个方法的链路里 创建了 pipleline-在父类abstractchannle中创建
+     * 这个方法的链路里 创建了 pipleline-在父类abstractchannle中创建 TODO
      */
     public NioServerSocketChannel(ServerSocketChannel channel) {
+        /**
+         * 查看 TODO
+         * 监听 连接事件
+         * 创建 pipeline
+         */
         super(null, channel, SelectionKey.OP_ACCEPT);
+        /**
+         * 查看 TODO
+         * 发送接收缓冲区
+         */
         config = new NioServerSocketChannelConfig(this, javaChannel().socket());
     }
 

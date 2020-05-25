@@ -80,11 +80,15 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
      *
      * @param parent
      *        the parent of this channel. {@code null} if there's no parent.
+     *
      */
     protected AbstractChannel(Channel parent, ChannelId id) {
         this.parent = parent;
         this.id = id;
         unsafe = newUnsafe();
+        /**
+         * 新建一个管道 TODO
+         */
         pipeline = newChannelPipeline();
     }
 

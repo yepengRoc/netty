@@ -64,6 +64,7 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
      * @param nThreads          the number of threads that will be used by this instance.
      * @param executor          the Executor to use, or {@code null} if the default should be used.
      * @param chooserFactory    the {@link EventExecutorChooserFactory} to use.
+     *                          DefaultEventExecutorChooserFactory 线程选择。如果线程数是 2的n次方。则使用&运算分配。否则使用%
      * @param args              arguments which will passed to each {@link #newChild(Executor, Object...)} call
      */
     protected MultithreadEventExecutorGroup(int nThreads, Executor executor,
@@ -73,14 +74,26 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
         }
 
         if (executor == null) {//默认传入的是null
+            /**
+             * 创建一个线程 执行器。- 用来执行给定的任务
+             * newDefaultThreadFactory 查看 TODO
+             *
+             * 接收一个线程工厂-用来创建线程
+             */
             executor = new ThreadPerTaskExecutor(newDefaultThreadFactory());//每任务线程执行器。通过executor来创建线程
         }
-
+        /**
+         * 事件执行器。接收 线程执行器（用来执行动作） 和参数
+         * 如果是boss 线程。默认传入的是1
+         */
         children = new EventExecutor[nThreads];
 
         for (int i = 0; i < nThreads; i ++) {
             boolean success = false;
             try {
+                /**
+                 * 子类实现 NioEventLoopGroup TODO
+                 */
                 children[i] = newChild(executor, args);
                 success = true;
             } catch (Exception e) {

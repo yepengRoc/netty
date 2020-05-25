@@ -277,7 +277,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
      */
     private ChannelFuture doBind(final SocketAddress localAddress) {
         /**
-         * 初始化和注册
+         * 初始化和注册 TODO
          */
         final ChannelFuture regFuture = initAndRegister();
         final Channel channel = regFuture.channel();
@@ -286,6 +286,9 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
         }
 
         if (regFuture.isDone()) {
+            /**
+             * 注册已完成和成功 TODO
+             */
             // At this point we know that the registration was complete and successful.
             ChannelPromise promise = channel.newPromise();
             doBind0(regFuture, channel, localAddress, promise);
@@ -303,6 +306,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
                         promise.setFailure(cause);
                     } else {
                         // Registration was successful, so set the correct executor to use.
+                        //注册成功，因此请设置要使用的正确执行器。
                         // See https://github.com/netty/netty/issues/2586
                         promise.registered();
 
@@ -321,9 +325,13 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
     final ChannelFuture initAndRegister() {
         Channel channel = null;
         try {
-            //创建一个nioserversocketchannel
+            /**
+             * 创建一个 nioserversocketchannel
+             */
             channel = channelFactory.newChannel();
-            //初始化channel
+            /**
+             * 初始化channel
+             */
             init(channel);
         } catch (Throwable t) {
             if (channel != null) {

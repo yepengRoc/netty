@@ -42,6 +42,7 @@ public class DefaultThreadFactory implements ThreadFactory {
          * 类型
          * 是否守护线程
          * 线程优先级
+         * multithreadeventExcutorgroup
          */
         this(poolType, false, Thread.NORM_PRIORITY);
     }
@@ -70,6 +71,11 @@ public class DefaultThreadFactory implements ThreadFactory {
         this(toPoolName(poolType), daemon, priority);
     }
 
+    /**
+     * 获取类名。然后转换为驼峰式命名
+     * @param poolType
+     * @return
+     */
     public static String toPoolName(Class<?> poolType) {
         ObjectUtil.checkNotNull(poolType, "poolType");
 
@@ -80,7 +86,9 @@ public class DefaultThreadFactory implements ThreadFactory {
             case 1:
                 return poolName.toLowerCase(Locale.US);
             default:
-                //转为为驼峰式名字。首字母大写转小写
+                /**
+                 *  转为为驼峰式名字。首字母大写转小写
+                 */
                 if (Character.isUpperCase(poolName.charAt(0)) && Character.isLowerCase(poolName.charAt(1))) {
                     return Character.toLowerCase(poolName.charAt(0)) + poolName.substring(1);
                 } else {
@@ -89,6 +97,13 @@ public class DefaultThreadFactory implements ThreadFactory {
         }
     }
 
+    /**
+     * 线程工厂
+     * @param poolName
+     * @param daemon
+     * @param priority
+     * @param threadGroup
+     */
     public DefaultThreadFactory(String poolName, boolean daemon, int priority, ThreadGroup threadGroup) {
         ObjectUtil.checkNotNull(poolName, "poolName");
 
@@ -96,7 +111,9 @@ public class DefaultThreadFactory implements ThreadFactory {
             throw new IllegalArgumentException(
                     "priority: " + priority + " (expected: Thread.MIN_PRIORITY <= priority <= Thread.MAX_PRIORITY)");
         }
-
+        /**
+         * 线程名称前缀  类名-（jvm实例中自增id）-
+         */
         prefix = poolName + '-' + poolId.incrementAndGet() + '-';
         this.daemon = daemon;
         this.priority = priority;

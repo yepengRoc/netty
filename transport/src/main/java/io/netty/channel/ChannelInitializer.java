@@ -50,6 +50,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * ...
  * </pre>
  * Be aware that this class is marked as {@link Sharable} and so the implementation must be safe to be re-used.
+ * 请注意，此类被标记为{@link Sharable}，因此必须安全地重复使用该实现。
  *
  * @param <C>   A sub-type of {@link Channel}
  */
@@ -74,6 +75,11 @@ public abstract class ChannelInitializer<C extends Channel> extends ChannelInbou
      */
     protected abstract void initChannel(C ch) throws Exception;
 
+    /**
+     * 注册channel 调用 initChannel 之后移除
+     * @param ctx
+     * @throws Exception
+     */
     @Override
     @SuppressWarnings("unchecked")
     public final void channelRegistered(ChannelHandlerContext ctx) throws Exception {
@@ -85,6 +91,7 @@ public abstract class ChannelInitializer<C extends Channel> extends ChannelInbou
             ctx.pipeline().fireChannelRegistered();
 
             // We are done with init the Channel, removing all the state for the Channel now.
+            //我们已经完成了初始化Channel的工作，现在删除了Channel的所有状态
             removeState(ctx);
         } else {
             // Called initChannel(...) before which is the expected behavior, so just forward the event.

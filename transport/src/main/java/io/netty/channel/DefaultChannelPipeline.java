@@ -42,6 +42,7 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 /**
  * The default {@link ChannelPipeline} implementation.  It is usually created
  * by a {@link Channel} implementation when the {@link Channel} is created.
+ * 默认的{@link ChannelPipeline}实现。它通常由创建{@link Channel}时的{@link Channel}实现创建。
  */
 public class DefaultChannelPipeline implements ChannelPipeline {
 

@@ -53,10 +53,12 @@ public class AdaptiveRecvByteBufAllocator extends DefaultMaxMessagesRecvByteBufA
         List<Integer> sizeTable = new ArrayList<Integer>();
         for (int i = 16; i < 512; i += 16) {
             sizeTable.add(i);
+            // 16 32 48 64 90 106
         }
 
         for (int i = 512; i > 0; i <<= 1) {
             sizeTable.add(i);
+            // 512 256 128 64 32 16  8 4 2 1
         }
 
         SIZE_TABLE = new int[sizeTable.size()];
@@ -170,6 +172,7 @@ public class AdaptiveRecvByteBufAllocator extends DefaultMaxMessagesRecvByteBufA
      * @param minimum  the inclusive lower bound of the expected buffer size
      * @param initial  the initial buffer size when no feed back was received
      * @param maximum  the inclusive upper bound of the expected buffer size
+     *                 最小  初始化  最大
      */
     public AdaptiveRecvByteBufAllocator(int minimum, int initial, int maximum) {
         checkPositive(minimum, "minimum");
