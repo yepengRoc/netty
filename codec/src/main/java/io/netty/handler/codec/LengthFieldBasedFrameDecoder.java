@@ -48,7 +48,7 @@ import io.netty.channel.ChannelHandlerContext;
  * +--------+----------------+      +--------+----------------+
  * </pre>
  *
- * <h3>2 bytes length field at offset 0, strip header</h3>2个字节的长度字段，偏移量为0，带头
+ * <h3>2 bytes length field at offset 0, strip header</h3>2个字节的长度字段，偏移量为0，跳过头
  *
  * Because we can get the length of the content by calling
  * {@link ByteBuf#readableBytes()}, you might want to strip the length
