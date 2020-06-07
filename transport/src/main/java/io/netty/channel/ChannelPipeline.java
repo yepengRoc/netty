@@ -224,7 +224,7 @@ import java.util.NoSuchElementException;
  * // If your business logic is fully asynchronous or finished very quickly, you don't
  * // need to specify a group.
  * 告诉管道在与I / O线程不同的线程中运行MyBusinessLogicHandler的事件处理程序方法* //，
- * 以便使I / O线程不会被* //这很耗时的任务阻塞。 * //如果您的业务逻辑完全异步或很快完成，则无需// //指定组。
+ * 以便使I / O线程不会被//这很耗时的任务阻塞。 //如果您的业务逻辑完全异步或很快完成，则无需// //指定组。
  * pipeline.addLast(group, "handler", new MyBusinessLogicHandler());
  * </pre>
  *

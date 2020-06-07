@@ -35,6 +35,7 @@ import io.netty.util.internal.StringUtil;
 
 /**
  * Special {@link ByteBuf} implementation which is used by the {@link ReplayingDecoder}
+ * {@link ReplayingDecoder}使用的特殊{@link ByteBuf}实现
  */
 final class ReplayingDecoderByteBuf extends ByteBuf {
 

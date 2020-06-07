@@ -35,6 +35,8 @@ import java.util.WeakHashMap;
  * The internal data structure that stores the thread-local variables for Netty and all {@link FastThreadLocal}s.
  * Note that this class is for internal use only and is subject to change at any time.  Use {@link FastThreadLocal}
  * unless you know what you are doing.
+ * 内部数据结构，用于存储Netty和所有{@link FastThreadLocal}的线程局部变量。 *请注意，该类仅供内部使用，随时可能更改。
+ * 除非您知道自己在做什么，否则请使用{@link FastThreadLocal} *。
  */
 public final class InternalThreadLocalMap extends UnpaddedInternalThreadLocalMap {
 

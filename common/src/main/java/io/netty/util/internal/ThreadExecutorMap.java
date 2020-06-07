@@ -69,6 +69,7 @@ public final class ThreadExecutorMap {
         return new Runnable() {
             @Override
             public void run() {
+                //事件循环 和当前线程绑定
                 setCurrentEventExecutor(eventExecutor);
                 try {
                     command.run();

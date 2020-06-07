@@ -155,6 +155,9 @@ public final class NioEventLoop extends SingleThreadEventLoop {
         return queueFactory.newTaskQueue(DEFAULT_MAX_PENDING_TASKS);
     }
 
+    /**
+     * select 元祖
+     */
     private static final class SelectorTuple {
         final Selector unwrappedSelector;
         final Selector selector;
@@ -173,12 +176,13 @@ public final class NioEventLoop extends SingleThreadEventLoop {
     private SelectorTuple openSelector() {
         final Selector unwrappedSelector;
         try {
+            //jdk原生的selector
             unwrappedSelector = provider.openSelector();
         } catch (IOException e) {
             throw new ChannelException("failed to open a new selector", e);
         }
 
-        if (DISABLE_KEY_SET_OPTIMIZATION) {
+        if (DISABLE_KEY_SET_OPTIMIZATION) {//禁止key set优化
             return new SelectorTuple(unwrappedSelector);
         }
 
@@ -197,7 +201,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
         });
 
         if (!(maybeSelectorImplClass instanceof Class) ||
-            // ensure the current selector implementation is what we can instrument.
+            // ensure the current selector implementation is what we can instrument. 确保当前的选择器实现是我们可以检测的
             !((Class<?>) maybeSelectorImplClass).isAssignableFrom(unwrappedSelector.getClass())) {
             if (maybeSelectorImplClass instanceof Throwable) {
                 Throwable t = (Throwable) maybeSelectorImplClass;
@@ -207,7 +211,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
         }
 
         final Class<?> selectorImplClass = (Class<?>) maybeSelectorImplClass;
-        final SelectedSelectionKeySet selectedKeySet = new SelectedSelectionKeySet();
+        final SelectedSelectionKeySet selectedKeySet = new SelectedSelectionKeySet();//用来记录select key
 
         Object maybeException = AccessController.doPrivileged(new PrivilegedAction<Object>() {
             @Override

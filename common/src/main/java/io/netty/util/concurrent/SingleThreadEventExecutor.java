@@ -45,6 +45,7 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 /**
  * Abstract base class for {@link OrderedEventExecutor}'s that execute all its submitted tasks in a single thread.
+ * {@link OrderedEventExecutor}的抽象基类，它在单个线程中执行所有已提交的任务
  *
  */
 public abstract class SingleThreadEventExecutor extends AbstractScheduledEventExecutor implements OrderedEventExecutor {
@@ -166,7 +167,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
                                         RejectedExecutionHandler rejectedHandler) {
         super(parent);
         this.addTaskWakesUp = addTaskWakesUp;
-        this.maxPendingTasks = DEFAULT_MAX_PENDING_EXECUTOR_TASKS;
+        this.maxPendingTasks = DEFAULT_MAX_PENDING_EXECUTOR_TASKS;//最大阻塞的任务数
         this.executor = ThreadExecutorMap.apply(executor, this);
         this.taskQueue = ObjectUtil.checkNotNull(taskQueue, "taskQueue");
         this.rejectedExecutionHandler = ObjectUtil.checkNotNull(rejectedHandler, "rejectedHandler");
@@ -653,6 +654,9 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
                         wakeup = false;
                 }
             }
+            /**
+             * 修改 线程状态
+             */
             if (STATE_UPDATER.compareAndSet(this, oldState, newState)) {
                 break;
             }
@@ -825,8 +829,14 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
 
     private void execute(Runnable task, boolean immediate) {
         boolean inEventLoop = inEventLoop();
+        /**
+         * 如果不是当前线程中执行，则生成一个任务。
+         */
         addTask(task);
         if (!inEventLoop) {
+            /**
+             * 启动线程 TODO
+             */
             startThread();
             if (isShutdown()) {
                 boolean reject = false;

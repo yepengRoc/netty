@@ -218,10 +218,12 @@ public interface ChannelHandler {
      * Indicates that the same instance of the annotated {@link ChannelHandler}
      * can be added to one or more {@link ChannelPipeline}s multiple times
      * without a race condition.
+     * 表示已注释的{@link ChannelHandler} *的同一实例可以多次添加到一个或多个{@link ChannelPipeline}中，而不会出现竞争条件。
      * <p>
      * If this annotation is not specified, you have to create a new handler
      * instance every time you add it to a pipeline because it has unshared
      * state such as member variables.
+     * 如果未指定此注释，则每次将其添加到管道时，都必须创建一个新的处理程序实例，因为它具有未共享的状态，例如成员变量。
      * <p>
      * This annotation is provided for documentation purpose, just like
      * <a href="http://www.javaconcurrencyinpractice.com/annotations/doc/">the JCIP annotations</a>.

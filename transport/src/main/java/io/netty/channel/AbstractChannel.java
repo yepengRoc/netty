@@ -511,7 +511,13 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                 if (!promise.setUncancellable() || !ensureOpen(promise)) {
                     return;
                 }
+                /**
+                 * 控制 只注册以此
+                 */
                 boolean firstRegistration = neverRegistered;
+                /**
+                 * 注册方法 TODO
+                 */
                 doRegister();
                 neverRegistered = false;
                 registered = true;
@@ -524,13 +530,14 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                 pipeline.fireChannelRegistered();////执行相应的回调
                 // Only fire a channelActive if the channel has never been registered. This prevents firing
                 // multiple channel actives if the channel is deregistered and re-registered.
+//                如果从未注册过频道，则仅触发channelActive。如果通道已注销并重新注册，则可以防止//激活多个通道。
                 if (isActive()) {
                     if (firstRegistration) {
                         pipeline.fireChannelActive();//执行相应的回调
                     } else if (config().isAutoRead()) {
                         // This channel was registered before and autoRead() is set. This means we need to begin read
                         // again so that we process inbound data.
-                        //
+                        //该通道已注册，并已设置autoRead（）。这意味着我们需要再次开始 以便处理入站数据。
                         // See https://github.com/netty/netty/issues/4805
                         beginRead();
                     }
