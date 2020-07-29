@@ -508,10 +508,15 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             try {
                 // check if the channel is still open as it could be closed in the mean time when the register
                 // call was outside of the eventLoop
+                //检查通道是否仍处于打开状态，因为在寄存器调用位于eventLoop外部的同时可能会关闭
                 if (!promise.setUncancellable() || !ensureOpen(promise)) {
                     return;
                 }
                 boolean firstRegistration = neverRegistered;
+                /**
+                 * 真正注册的地方 TODO
+                 * AbstractNioChannel
+                 */
                 doRegister();
                 neverRegistered = false;
                 registered = true;
@@ -760,6 +765,9 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                         outboundBuffer.close(closeCause);
                     }
                 }
+                /**
+                 * 关闭
+                 */
                 if (inFlush0) {
                     invokeLater(new Runnable() {
                         @Override

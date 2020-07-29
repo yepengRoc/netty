@@ -61,6 +61,8 @@ public class NioServerSocketChannel extends AbstractNioMessageChannel
              *  See <a href="https://github.com/netty/netty/issues/2308">#2308</a>.
              *  当前，每次创建新通道时都会调用SelectorProvider＃provider（包含同步块）。
              *  当应用程序创建大量连接时，这可能导致不必要的阻塞（每秒创建5000个连接时，性能损失约为1％）。
+             *
+             *  获取一个nio serversocketchannel
              */
             return provider.openServerSocketChannel();
         } catch (IOException e) {

@@ -1,18 +1,3 @@
-/*
- * Copyright 2012 The Netty Project
- *
- * The Netty Project licenses this file to you under the Apache License,
- * version 2.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations
- * under the License.
- */
 
 package io.netty.buffer;
 
@@ -64,6 +49,9 @@ public class PooledByteBufAllocator extends AbstractByteBufAllocator implements 
     };
 
     static {
+        /**
+         * 默认是8 k
+         */
         int defaultPageSize = SystemPropertyUtil.getInt("io.netty.allocator.pageSize", 8192);
         Throwable pageSizeFallbackCause = null;
         try {
@@ -84,14 +72,16 @@ public class PooledByteBufAllocator extends AbstractByteBufAllocator implements 
         }
         DEFAULT_MAX_ORDER = defaultMaxOrder;
 
-        // Determine reasonable default for nHeapArena and nDirectArena.
-        // Assuming each arena has 3 chunks, the pool should not consume more than 50% of max memory.
+        // Determine reasonable default for nHeapArena and nDirectArena. 为nHeapArena和nDirectArena确定合理的默认值。
+        // Assuming each arena has 3 chunks, the pool should not consume more than 50% of max memory.假设每个竞技场有3个块，则该池消耗的内存不应超过最大内存的50％。
         final Runtime runtime = Runtime.getRuntime();
 
         /*
          * We use 2 * available processors by default to reduce contention as we use 2 * available processors for the
          * number of EventLoops in NIO and EPOLL as well. If we choose a smaller number we will run into hot spots as
          * allocation and de-allocation needs to be synchronized on the PoolArena.
+         * 默认情况下，我们使用2 可用处理器来减少争用，因为我们也将2 可用处理器用于 NIO和EPOLL中的EventLoop数量。
+         * 如果选择较小的数字，则会遇到热点，因为分配和取消分配需要在PoolArena上同步
          *
          * See https://github.com/netty/netty/issues/3888.
          */

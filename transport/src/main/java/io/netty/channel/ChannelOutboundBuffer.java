@@ -694,7 +694,9 @@ public final class ChannelOutboundBuffer {
                 // Just decrease; do not trigger any events via decrementPendingOutboundBytes()
                 int size = e.pendingSize;
                 TOTAL_PENDING_SIZE_UPDATER.addAndGet(this, -size);
-
+                /**
+                 * TODO
+                 */
                 if (!e.cancelled) {
                     ReferenceCountUtil.safeRelease(e.msg);
                     safeFail(e.promise, cause);

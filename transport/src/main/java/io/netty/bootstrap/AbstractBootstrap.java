@@ -291,6 +291,9 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
              */
             // At this point we know that the registration was complete and successful.
             ChannelPromise promise = channel.newPromise();
+            /**
+             * 如果channel在 selector上注册成功，则绑定 ip+端口 到channel
+             */
             doBind0(regFuture, channel, localAddress, promise);
             return promise;
         } else {

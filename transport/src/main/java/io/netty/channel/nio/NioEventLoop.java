@@ -52,6 +52,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * {@link SingleThreadEventLoop} implementation which register the {@link Channel}'s to a
  * {@link Selector} and so does the multi-plexing of these in the event loop.
+ * {@link SingleThreadEventLoop}实现将{@link Channel}注册到 {@link Selector}，因此在事件循环中对它们进行多路复用
  *
  */
 public final class NioEventLoop extends SingleThreadEventLoop {
@@ -434,6 +435,9 @@ public final class NioEventLoop extends SingleThreadEventLoop {
         }
     }
 
+    /**
+     * 任务调度 TODO
+     */
     @Override
     protected void run() {
         int selectCnt = 0;
@@ -523,6 +527,9 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             }
             // Always handle shutdown even if the loop processing threw an exception.
             try {
+                /**
+                 * 轮询关闭标识，如果关闭，则执行关闭动作 TODO
+                 */
                 if (isShuttingDown()) {
                     closeAll();
                     if (confirmShutdown()) {
@@ -762,6 +769,9 @@ public final class NioEventLoop extends SingleThreadEventLoop {
         }
 
         for (AbstractNioChannel ch: channels) {
+            /**
+             * 关闭
+             */
             ch.unsafe().close(ch.unsafe().voidPromise());
         }
     }
