@@ -25,6 +25,7 @@ import java.util.List;
 
 /**
  * Resolves a possibility unresolved {@link SocketAddress}.
+ * 解决了{@link SocketAddress}未解决的可能性。
  */
 public interface AddressResolver<T extends SocketAddress> extends Closeable {
 

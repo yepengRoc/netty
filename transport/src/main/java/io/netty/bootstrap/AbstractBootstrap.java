@@ -281,13 +281,14 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
          */
         final ChannelFuture regFuture = initAndRegister();
         final Channel channel = regFuture.channel();
-        if (regFuture.cause() != null) {
+        if (regFuture.cause() != null) {//失败了
             return regFuture;
         }
 
         if (regFuture.isDone()) {
             /**
              * 注册已完成和成功 TODO
+             * 至此，我们知道注册已经完成并且成功。
              */
             // At this point we know that the registration was complete and successful.
             ChannelPromise promise = channel.newPromise();
@@ -298,6 +299,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
             return promise;
         } else {
             // Registration future is almost always fulfilled already, but just in case it's not.
+            //未来的注册几乎总是已经实现，但以防万一。
             final PendingRegistrationPromise promise = new PendingRegistrationPromise(channel);
             regFuture.addListener(new ChannelFutureListener() {
                 @Override
@@ -374,12 +376,20 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
 
     abstract void init(Channel channel) throws Exception;
 
+    /**
+     * 和管道进行绑定
+     * @param regFuture
+     * @param channel
+     * @param localAddress
+     * @param promise
+     */
     private static void doBind0(
             final ChannelFuture regFuture, final Channel channel,
             final SocketAddress localAddress, final ChannelPromise promise) {
 
         // This method is invoked before channelRegistered() is triggered.  Give user handlers a chance to set up
         // the pipeline in its channelRegistered() implementation.
+        //在触发channelRegistered（）之前调用此方法。使用户处理程序有机会在其channelRegistered（）实现中建立管道。
         channel.eventLoop().execute(new Runnable() {
             @Override
             public void run() {

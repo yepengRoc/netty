@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * A decoder that decodes the content of the received {@link DatagramPacket} using
  * the specified {@link ByteBuf} decoder. E.g.,
- *
+ * 解码器，使用指定的{@link ByteBuf}解码器解码接收到的{@link DatagramPacket}的内容。例如。，
  * <pre><code>
  * {@link ChannelPipeline} pipeline = ...;
  * pipeline.addLast("udpDecoder", new {@link DatagramPacketDecoder}(new {@link ProtobufDecoder}(...));

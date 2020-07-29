@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * An encoder that encodes the content in {@link AddressedEnvelope} to {@link DatagramPacket} using
  * the specified message encoder. E.g.,
- *
+ * 使用*指定的消息编码器将{@link AddressedEnvelope}中的内容编码为{@link DatagramPacket}的编码器。例如。，
  * <pre><code>
  * {@link ChannelPipeline} pipeline = ...;
  * pipeline.addLast("udpEncoder", new {@link DatagramPacketEncoder}(new {@link ProtobufEncoder}(...));
@@ -40,7 +40,7 @@ import java.util.List;
  *
  * Note: As UDP packets are out-of-order, you should make sure the encoded message size are not greater than
  * the max safe packet size in your particular network path which guarantees no packet fragmentation.
- *
+ * 由于UDP数据包乱序，因此您应确保编码的消息大小不大于特定网络路径中的最大安全数据包大小，这样可以保证没有数据包碎片。
  * @param <M> the type of message to be encoded
  */
 public class DatagramPacketEncoder<M> extends MessageToMessageEncoder<AddressedEnvelope<M, InetSocketAddress>> {

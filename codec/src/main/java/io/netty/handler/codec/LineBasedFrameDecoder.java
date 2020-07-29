@@ -23,6 +23,7 @@ import java.util.List;
 
 /**
  * A decoder that splits the received {@link ByteBuf}s on line endings.
+ * 解码器，将接收到的{@link ByteBuf}在行尾进行拆分。
  * <p>
  * Both {@code "\n"} and {@code "\r\n"} are handled.
  * <p>
@@ -30,6 +31,9 @@ import java.util.List;
  * uses direct {@code byte} to {@code char} cast and then compares that {@code char} to a few low range
  * ASCII characters like {@code '\n'} or {@code '\r'}. UTF-8 is not using low range [0..0x7F]
  * byte values for multibyte codepoint representations therefore fully supported by this implementation.
+ * 字节流应采用UTF-8字符编码或ASCII。当前实现使用直接的{@code字节}到{@code char}强制转换，
+ * 然后将该{@code char}与一些低范围的 ASCII字符进行比较，例如{@code'\ n'}或{@code'\ r'}。
+ * UTF-8不在多字节代码点表示中使用低范围[0..0x7F] *字节值，因此此实现完全支持。
  * <p>
  * For a more general delimiter-based decoder, see {@link DelimiterBasedFrameDecoder}.
  */

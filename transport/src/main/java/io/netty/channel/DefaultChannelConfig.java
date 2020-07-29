@@ -300,6 +300,7 @@ public class DefaultChannelConfig implements ChannelConfig {
      */
     private void setRecvByteBufAllocator(RecvByteBufAllocator allocator, ChannelMetadata metadata) {
         if (allocator instanceof MaxMessagesRecvByteBufAllocator) {
+            //每次最多可以读多少信息
             ((MaxMessagesRecvByteBufAllocator) allocator).maxMessagesPerRead(metadata.defaultMaxMessagesPerRead());
         } else if (allocator == null) {
             throw new NullPointerException("allocator");

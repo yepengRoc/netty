@@ -25,6 +25,7 @@ import java.util.List;
 /**
  * A decoder that splits the received {@link ByteBuf}s by the fixed number
  * of bytes. For example, if you received the following four fragmented packets:
+ * 解码器将接收到的{@link ByteBuf}除以固定数量的字节*。例如，如果您收到以下四个分段的数据包
  * <pre>
  * +---+----+------+----+
  * | A | BC | DEFG | HI |
@@ -32,6 +33,7 @@ import java.util.List;
  * </pre>
  * A {@link FixedLengthFrameDecoder}{@code (3)} will decode them into the
  * following three packets with the fixed length:
+ * {@link FixedLengthFrameDecoder} {@ code（3）}会将它们解码为*以下三个具有固定长度的数据包：
  * <pre>
  * +-----+-----+-----+
  * | ABC | DEF | GHI |

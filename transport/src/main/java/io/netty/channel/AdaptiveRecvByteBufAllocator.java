@@ -49,6 +49,7 @@ public class AdaptiveRecvByteBufAllocator extends DefaultMaxMessagesRecvByteBufA
     static {
         /**
          * 按照从小到大 要分配的空间大小。
+         * 小于512 每次加16
          */
         List<Integer> sizeTable = new ArrayList<Integer>();
         for (int i = 16; i < 512; i += 16) {
@@ -60,7 +61,13 @@ public class AdaptiveRecvByteBufAllocator extends DefaultMaxMessagesRecvByteBufA
             sizeTable.add(i);
             // 512 256 128 64 32 16  8 4 2 1
         }
-
+        /**
+         * 大于512 从512开始 每次 增长量 为上一次增长量的一半
+         * 第一次增长 512
+         * 第二次增长 256
+         * 第三次增长 128
+         * 以此类推
+         */
         SIZE_TABLE = new int[sizeTable.size()];
         for (int i = 0; i < SIZE_TABLE.length; i ++) {
             SIZE_TABLE[i] = sizeTable.get(i);
@@ -161,6 +168,8 @@ public class AdaptiveRecvByteBufAllocator extends DefaultMaxMessagesRecvByteBufA
      * Creates a new predictor with the default parameters.  With the default
      * parameters, the expected buffer size starts from {@code 1024}, does not
      * go down below {@code 64}, and does not go up above {@code 65536}.
+     * 用默认参数创建一个新的预测变量。使用默认的参数，
+     * 预期的缓冲区大小从{@code 1024}开始，不会减小到{@code 64}以下，也不会增大到{@code 65536}以上。
      */
     public AdaptiveRecvByteBufAllocator() {
         this(DEFAULT_MINIMUM, DEFAULT_INITIAL, DEFAULT_MAXIMUM);

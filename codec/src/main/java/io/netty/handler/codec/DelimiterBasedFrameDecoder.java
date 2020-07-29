@@ -28,8 +28,11 @@ import java.util.List;
  * delimiters.  It is particularly useful for decoding the frames which ends
  * with a delimiter such as {@link Delimiters#nulDelimiter() NUL} or
  * {@linkplain Delimiters#lineDelimiter() newline characters}.
+ * 一种解码器，通过一个或多个 定界符将接收到的{@link ByteBuf}进行拆分。对于以为定界符
+ * （例如{@link Delimiters＃nulDelimiter（）NUL}或* {@linkplain Delimiters＃lineDelimiter（）换行符））
+ * 结尾的帧，这尤其有用。
  *
- * <h3>Predefined delimiters</h3>
+ * <h3>Predefined delimiters</h3>预定义的定界符
  * <p>
  * {@link Delimiters} defines frequently used delimiters for convenience' sake.
  *

@@ -246,12 +246,12 @@ public class DefaultPromise<V> extends AbstractFuture<V> implements Promise<V> {
         checkDeadLock();
 
         synchronized (this) {
-            while (!isDone()) {
+            while (!isDone()) {//没有结束
                 incWaiters();
                 try {
                     wait();
                 } finally {
-                    decWaiters();
+                    decWaiters();//减去。因为已经移交给 worker 了
                 }
             }
         }

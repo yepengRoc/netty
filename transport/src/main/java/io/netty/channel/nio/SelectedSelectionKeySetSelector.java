@@ -25,6 +25,11 @@ final class SelectedSelectionKeySetSelector extends Selector {
     private final SelectedSelectionKeySet selectionKeys;
     private final Selector delegate;
 
+    /**
+     * 包装jdk原生的select 和 select key
+     * @param delegate
+     * @param selectionKeys
+     */
     SelectedSelectionKeySetSelector(Selector delegate, SelectedSelectionKeySet selectionKeys) {
         this.delegate = delegate;
         this.selectionKeys = selectionKeys;
