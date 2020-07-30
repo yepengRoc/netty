@@ -20,11 +20,13 @@ import java.util.List;
 
 /**
  * Expose metrics for an arena.
+ * 公开竞技场的指标。
  */
 public interface PoolArenaMetric {
 
     /**
      * Returns the number of thread caches backed by this arena.
+     * 返回此舞台支持的线程高速缓存数
      */
     int numThreadCaches();
 
@@ -135,6 +137,7 @@ public interface PoolArenaMetric {
 
     /**
      * Return the number of active bytes that are currently allocated by the arena.
+     * 返回当前在舞台上活跃分配的字节数
      */
     long numActiveBytes();
 }

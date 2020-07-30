@@ -77,9 +77,9 @@ public final class ChannelOutboundBuffer {
     //
     // The Entry that is the first in the linked-list structure that was flushed
     private Entry flushedEntry;
-    // The Entry which is the first unflushed in the linked-list structure
+    // The Entry which is the first unflushed in the linked-list structure指向链表头部
     private Entry unflushedEntry;
-    // The Entry which represents the tail of the buffer
+    // The Entry which represents the tail of the buffer指向链表尾部
     private Entry tailEntry;
     // The number of flushed entries that are not written yet
     private int flushed;
@@ -93,13 +93,13 @@ public final class ChannelOutboundBuffer {
             AtomicLongFieldUpdater.newUpdater(ChannelOutboundBuffer.class, "totalPendingSize");
 
     @SuppressWarnings("UnusedDeclaration")
-    private volatile long totalPendingSize;
+    private volatile long totalPendingSize;//保存msg的字节数
 
     private static final AtomicIntegerFieldUpdater<ChannelOutboundBuffer> UNWRITABLE_UPDATER =
             AtomicIntegerFieldUpdater.newUpdater(ChannelOutboundBuffer.class, "unwritable");
 
     @SuppressWarnings("UnusedDeclaration")
-    private volatile int unwritable;
+    private volatile int unwritable;//不可写标识
 
     private volatile Runnable fireChannelWritabilityChangedTask;
 

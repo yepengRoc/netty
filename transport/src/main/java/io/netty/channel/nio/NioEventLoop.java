@@ -449,6 +449,12 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             try {
                 int strategy;
                 try {
+                    /**
+                     * 如果hasTasks() 中有元素
+                     * selectNowSupplier 返回已经准备好i/o 操作的通道数量
+                     *
+                     * 如果 strategy -1 则既没有元素 也没有通道数
+                     */
                     strategy = selectStrategy.calculateStrategy(selectNowSupplier, hasTasks());
                     switch (strategy) {
                     case SelectStrategy.CONTINUE:
@@ -458,6 +464,10 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                         // fall-through to SELECT since the busy-wait is not supported with NIO
 
                     case SelectStrategy.SELECT:
+                        /**
+                         * 计算下一次 调度任务的时间。没有的话，就取当前时间。
+                         * 然后让select 阻塞到这个时间
+                         */
                         long curDeadlineNanos = nextScheduledTaskDeadlineNanos();
                         if (curDeadlineNanos == -1L) {
                             curDeadlineNanos = NONE; // nothing on the calendar
@@ -470,6 +480,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                         } finally {
                             // This update is just to help block unnecessary selector wakeups
                             // so use of lazySet is ok (no race condition)
+                            //此更新只是为了帮助阻止不必要的选择器唤醒// 使用lazySet是可以的（无竞争条件）
                             nextWakeupNanos.lazySet(AWAKE);
                         }
                         // fall through
@@ -483,15 +494,17 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                     handleLoopException(e);
                     continue;
                 }
-
+                //select 轮询次数
                 selectCnt++;
+                //取消key的数量
                 cancelledKeys = 0;
+                //是否需要从新轮询
                 needsToSelectAgain = false;
                 final int ioRatio = this.ioRatio;
                 boolean ranTasks;
-                if (ioRatio == 100) {
+                if (ioRatio == 100) {//io 比例设置100%
                     try {
-                        if (strategy > 0) {
+                        if (strategy > 0) {//key 就绪或 队列中有任务。进行任务处理
                             processSelectedKeys();
                         }
                     } finally {
@@ -578,6 +591,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
 
         // Prevent possible consecutive immediate failures that lead to
         // excessive CPU consumption.
+//        防止可能导致连续CPU过度消耗的连续直接故障
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
@@ -656,7 +670,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             final SelectionKey k = selectedKeys.keys[i];
             // null out entry in the array to allow to have it GC'ed once the Channel close
             // See https://github.com/netty/netty/issues/2363
-            selectedKeys.keys[i] = null;
+            selectedKeys.keys[i] = null;//置空，让gc可以回收
 
             final Object a = k.attachment();
 
@@ -695,6 +709,8 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             // and thus the SelectionKey could be cancelled as part of the deregistration process, but the channel is
             // still healthy and should not be closed.
             // See https://github.com/netty/netty/issues/5125
+            //如果ch仍注册到此EventLoop，则仅关闭ch。 ch可能已经从事件循环中注销了//，
+            // 因此，作为注销过程的一部分，可以取消SelectionKey，但是//通道仍然处于健康状态，因此不应关闭。
             if (eventLoop == this) {
                 // close the channel if the key is not valid anymore
                 unsafe.close(unsafe.voidPromise());

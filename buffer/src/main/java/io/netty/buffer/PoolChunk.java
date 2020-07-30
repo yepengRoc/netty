@@ -22,27 +22,35 @@ import java.util.Deque;
 
 /**
  * Description of algorithm for PageRun/PoolSubpage allocation from PoolChunk
- *
+ * PoolChunk中的PageRun / PoolSubpage分配算法的说明
  * Notation: The following terms are important to understand the code
  * > page  - a page is the smallest unit of memory chunk that can be allocated
  * > chunk - a chunk is a collection of pages
  * > in this code chunkSize = 2^{maxOrder} * pageSize
+ * 表示法：以下术语对于理解代码很重要
+ * >页面-页面是可以分配的内存块的最小单位
+ * >块-块是页面的集合
+ * >在此代码中chunkSize = 2 ^ {maxOrder} * pageSize
  *
  * To begin we allocate a byte array of size = chunkSize
  * Whenever a ByteBuf of given size needs to be created we search for the first position
  * in the byte array that has enough empty space to accommodate the requested size and
  * return a (long) handle that encodes this offset information, (this memory segment is then
  * marked as reserved so it is always used by exactly one ByteBuf and no more)
+ * 首先，我们分配一个大小为= chunkSize的字节数组每当需要创建给定大小的ByteBuf时，
+ * 我们都会搜索第一个位置字节数组中有足够的空白空间来容纳请求的大小和返回一个编码此偏移量信息的（长）句柄，
+ * （然后此内存段为标记为保留，因此它始终仅由一个ByteBuf使用，并且不再使用）
  *
  * For simplicity all sizes are normalized according to PoolArena#normalizeCapacity method
  * This ensures that when we request for memory segments of size >= pageSize the normalizedCapacity
  * equals the next nearest power of 2
- *
+ *为简单起见，所有大小均根据PoolArena＃normalizeCapacity方法标准化
+ * 这样可以确保当我们请求大小大于等于pageSize的内存段时，normalizedCapacity等于下一个最近的2的幂
  * To search for the first offset in chunk that has at least requested size available we construct a
  * complete balanced binary tree and store it in an array (just like heaps) - memoryMap
- *
+ * 要搜索块中至少具有所需大小的第一个偏移量，我们构造一个完成平衡的二叉树并将其存储在数组中（就像堆一样）-memoryMap
  * The tree looks like this (the size of each node being mentioned in the parenthesis)
- *
+ *树看起来像这样（括号中提到的每个节点的大小）
  * depth=0        1 node (chunkSize)
  * depth=1        2 nodes (chunkSize/2)
  * ..
@@ -51,42 +59,51 @@ import java.util.Deque;
  * ..
  * depth=maxOrder 2^maxOrder nodes (chunkSize/2^{maxOrder} = pageSize)
  *
- * depth=maxOrder is the last level and the leafs consist of pages
+ * depth=maxOrder is the last level and the leafs consist of pages 最大订单是最后一个级别和叶子组成的页面
  *
  * With this tree available searching in chunkArray translates like this:
  * To allocate a memory segment of size chunkSize/2^k we search for the first node (from left) at height k
  * which is unused
+ * 有了这棵树，chunkArray中的可用搜索转换如下：
+ * 要分配一个大小为chunkSize / 2 ^ k的内存段，我们从高度k搜索（从左开始）第一个未使用的节点
  *
  * Algorithm:
  * ----------
- * Encode the tree in memoryMap with the notation
+ * Encode the tree in memoryMap with the notation  用表示法将树编码在memoryMap中
  *   memoryMap[id] = x => in the subtree rooted at id, the first node that is free to be allocated
  *   is at depth x (counted from depth=0) i.e., at depths [depth_of_id, x), there is no node that is free
- *
+ *  在以id为根的子树中的memoryMap [id] = x =>，id是自由分配的第一个节点在深度x（从depth = 0开始计数），即在深度[depth_of_id，x）处，没有可用的节点
  *  As we allocate & free nodes, we update values stored in memoryMap so that the property is maintained
- *
+ *  在分配和释放节点时，我们更新存储在memoryMap中的值，以便维护该属性
  * Initialization -
  *   In the beginning we construct the memoryMap array by storing the depth of a node at each node
  *     i.e., memoryMap[id] = depth_of_id
+ *     首先，我们通过在每个节点上存储节点的深度来构造memoryMap数组，即memoryMap [id] = depth_of_id
  *
  * Observations:
  * -------------
- * 1) memoryMap[id] = depth_of_id  => it is free / unallocated
+ * 1) memoryMap[id] = depth_of_id  => it is free / unallocated  空闲没有分配
  * 2) memoryMap[id] > depth_of_id  => at least one of its child nodes is allocated, so we cannot allocate it, but
  *                                    some of its children can still be allocated based on their availability
+ *                                    至少分配了一个子节点，因此我们无法分配它，但仍可以根据其可用性分配一些子节点
  * 3) memoryMap[id] = maxOrder + 1 => the node is fully allocated & thus none of its children can be allocated, it
  *                                    is thus marked as unusable
+ *                                    该节点已完全分配，因此无法分配其所有子节点，因此被标记为不可用
  *
- * Algorithm: [allocateNode(d) => we want to find the first node (from left) at height h that can be allocated]
+ * Algorithm: [allocateNode(d) => we want to find the first node (from left) at height h that can be allocated]我们想找到高度为h的第一个节点（从左开始）
  * ----------
  * 1) start at root (i.e., depth = 0 or id = 1)
  * 2) if memoryMap[1] > d => cannot be allocated from this chunk
  * 3) if left node value <= h; we can allocate from left subtree so move to left and repeat until found
  * 4) else try in right subtree
+ * 1）从根开始（即，深度= 0或id = 1）
+ * 2）如果无法从该块中分配memoryMap [1]> d =>，则
+ * 3）如果左侧节点值<= h；我们可以从左边的子树中分配，所以向左移动并重复直到找到
+ * 4）否则请尝试右边的子树
  *
  * Algorithm: [allocateRun(size)]
  * ----------
- * 1) Compute d = log_2(chunkSize/size)
+ * 1) Compute d = log_2(chunkSize/size)  对数
  * 2) Return allocateNode(d)
  *
  * Algorithm: [allocateSubpage(size)]
@@ -94,7 +111,8 @@ import java.util.Deque;
  * 1) use allocateNode(maxOrder) to find an empty (i.e., unused) leaf (i.e., page)
  * 2) use this handle to construct the PoolSubpage object or if it already exists just call init(normCapacity)
  *    note that this PoolSubpage object is added to subpagesPool in the PoolArena when we init() it
- *
+ * 1）使用allocateNode（maxOrder）查找空（即未使用）的叶子（即页面）
+ * 2）使用此句柄构造PoolSubpage对象，或者如果它已经存在，则只需调用init（normCapacity）请注意，当我们执行init（）时，此PoolSubpage对象会添加到PoolArena中的subpagesPool中
  * Note:
  * -----
  * In the implementation for improving cache coherence,
@@ -102,6 +120,9 @@ import java.util.Deque;
  *
  * memoryMap[id]= depth_of_id  is defined above
  * depthMap[id]= x  indicates that the first node which is free to be allocated is at depth x (from root)
+ * 在提高缓存一致性的实现中，我们分别将2条信息depth_of_id和x作为两个字节值存储在memoryMap和depthMap中
+ * 在上面定义了memoryMap [id] = depth_of_id
+ * depthMap [id] = x表示可自由分配的第一个节点位于深度x（从根开始）
  */
 final class PoolChunk<T> implements PoolChunkMetric {
 

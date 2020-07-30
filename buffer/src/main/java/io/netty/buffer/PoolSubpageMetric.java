@@ -17,6 +17,7 @@ package io.netty.buffer;
 
 /**
  * Metrics for a sub-page.
+ * 指标一子页面
  */
 public interface PoolSubpageMetric {
 
