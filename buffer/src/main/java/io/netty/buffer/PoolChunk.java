@@ -166,29 +166,29 @@ final class PoolChunk<T> implements PoolChunkMetric {
         unpooled = false;
         this.arena = arena;
         this.memory = memory;
-        this.pageSize = pageSize;
+        this.pageSize = pageSize;//页大小
         this.pageShifts = pageShifts;
-        this.maxOrder = maxOrder;
-        this.chunkSize = chunkSize;
+        this.maxOrder = maxOrder;//最大
+        this.chunkSize = chunkSize;//chunk 大小
         this.offset = offset;
-        unusable = (byte) (maxOrder + 1);
-        log2ChunkSize = log2(chunkSize);
+        unusable = (byte) (maxOrder + 1);//不可用
+        log2ChunkSize = log2(chunkSize);//chunsize 以2为底的对数
         subpageOverflowMask = ~(pageSize - 1);
         freeBytes = chunkSize;
 
         assert maxOrder < 30 : "maxOrder should be < 30, but is: " + maxOrder;
-        maxSubpageAllocs = 1 << maxOrder;
+        maxSubpageAllocs = 1 << maxOrder;//
 
         // Generate the memory map.
         memoryMap = new byte[maxSubpageAllocs << 1];
         depthMap = new byte[memoryMap.length];
         int memoryMapIndex = 1;
         for (int d = 0; d <= maxOrder; ++ d) { // move down the tree one level at a time
-            int depth = 1 << d;
+            int depth = 1 << d;// depth=0 d=1 depth=2  d=2 10 110 4
             for (int p = 0; p < depth; ++ p) {
                 // in each level traverse left to right and set value to the depth of subtree
-                memoryMap[memoryMapIndex] = (byte) d;
-                depthMap[memoryMapIndex] = (byte) d;
+                memoryMap[memoryMapIndex] = (byte) d;//0
+                depthMap[memoryMapIndex] = (byte) d;//0
                 memoryMapIndex ++;
             }
         }
