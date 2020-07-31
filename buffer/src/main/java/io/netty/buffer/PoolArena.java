@@ -91,21 +91,37 @@ abstract class PoolArena<T> implements PoolArenaMetric {
           int maxOrder, int pageShifts, int chunkSize, int cacheAlignment) {
         this.parent = parent;
         this.pageSize = pageSize;
+        //最大深度即树的高度，由PooledByteBufAllocator 传入
         this.maxOrder = maxOrder;
+        /**
+         * 树的深度
+         * pageShifts 在计算 numSmallPoolSubpages 大小时用到，
+         * numSmallPoolSubpages 是数组 smallPoolSubpages[] 的长度，
+         * 因为Netty 中关于 small 内存的大小定义是  [1024,pageSize), 而且是翻倍存放，比如 1024 2048 4096等
+         * pageSize 默认是 8192=8k
+         */
         this.pageShifts = pageShifts;
         this.chunkSize = chunkSize;
         directMemoryCacheAlignment = cacheAlignment;
         directMemoryCacheAlignmentMask = cacheAlignment - 1;
+        /**
+         * 判断需要分片的容量是否超过 pageSize, 由于 pageSize 是2的幂，
+         * 故如果要判断一个数小于 pageSize,位运算的操作是   anum &  ~(pageSize-1) == 0 的话，说明 anum 小于 pageSize
+         * 例如 8 二进制 1000 ~(8-1) = 0111
+         */
         subpageOverflowMask = ~(pageSize - 1);
         /**
          * tiny池 32
          */
         tinySubpagePools = newSubpagePoolArray(numTinySubpagePools);
+        /**
+         * tinySubpagePools 中存储的是双向链表
+         */
         for (int i = 0; i < tinySubpagePools.length; i ++) {
             tinySubpagePools[i] = newSubpagePoolHead(pageSize);
         }
         /**
-         * small 池
+         * small 池  4
          */
         numSmallSubpagePools = pageShifts - 9;
         smallSubpagePools = newSubpagePoolArray(numSmallSubpagePools);
@@ -176,7 +192,7 @@ abstract class PoolArena<T> implements PoolArenaMetric {
         return (normCapacity & subpageOverflowMask) == 0;
     }
 
-    // normCapacity < 512
+    // normCapacity < 512  512b
     static boolean isTiny(int normCapacity) {
         return (normCapacity & 0xFFFFFE00) == 0;
     }
@@ -343,6 +359,11 @@ abstract class PoolArena<T> implements PoolArenaMetric {
         return table[tableIdx];
     }
 
+    /**
+     * 申请内存大小
+     * @param reqCapacity
+     * @return
+     */
     int normalizeCapacity(int reqCapacity) {
         checkPositiveOrZero(reqCapacity, "reqCapacity");
 
@@ -375,10 +396,10 @@ abstract class PoolArena<T> implements PoolArenaMetric {
         }
 
         // Quantum-spaced
-        if ((reqCapacity & 15) == 0) {
+        if ((reqCapacity & 15) == 0) {//刚好是16的倍数
             return reqCapacity;
         }
-
+        //申请52 返回的是64。如果不是16的倍数，则返回大于当前数的最小的16的倍数。干掉不够16的零头然后+16.很巧妙
         return (reqCapacity & ~15) + 16;
     }
 

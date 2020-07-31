@@ -76,6 +76,9 @@ final class PoolSubpage<T> implements PoolSubpageMetric {
 
     /**
      * Returns the bitmap index of the subpage allocation.
+     * 返回子页面分配的位图索引
+     * 高32位表示subPage中分配的位置，低32位表示二叉树中分配的节点
+     * PoolArena根据上述信息调用PoolChunk的initBuf方法完成PoolByteBuf的内存分配
      */
     long allocate() {
         if (elemSize == 0) {
