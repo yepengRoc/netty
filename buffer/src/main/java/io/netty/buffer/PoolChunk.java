@@ -132,8 +132,9 @@ final class PoolChunk<T> implements PoolChunkMetric {
     final T memory;
     final boolean unpooled;
     final int offset;
-    private final byte[] memoryMap;
+    private final byte[] memoryMap;//1 byte = 8bit.最大存储数字是 256
     private final byte[] depthMap;
+
     private final PoolSubpage<T>[] subpages;
     /** Used to determine if the requested capacity is equal to or greater than pageSize. */
     private final int subpageOverflowMask;
