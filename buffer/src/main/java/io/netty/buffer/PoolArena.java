@@ -128,7 +128,9 @@ abstract class PoolArena<T> implements PoolArenaMetric {
         for (int i = 0; i < smallSubpagePools.length; i ++) {
             smallSubpagePools[i] = newSubpagePoolHead(pageSize);
         }
-
+        /**
+         * qInit ->q000->q025->q050->q075->q100
+         */
         q100 = new PoolChunkList<T>(this, null, 100, Integer.MAX_VALUE, chunkSize);
         q075 = new PoolChunkList<T>(this, q100, 75, 100, chunkSize);
         q050 = new PoolChunkList<T>(this, q075, 50, 100, chunkSize);
@@ -360,7 +362,11 @@ abstract class PoolArena<T> implements PoolArenaMetric {
     }
 
     /**
-     * 申请内存大小
+     * 申请内存大小.TODO
+     * 根据申请的内存大小，计算实际申请内存大小
+     * 如果申请内存小于512b,则是tiny.tiny内存的分配是16的倍数。
+     * 例如：申请 小于16，则每次分配16；申请大于16，则找大于当前数最小的16的倍数
+     * 大于512b 则是small。small内存的分配是1024的倍数。同 tiny计算规则类似
      * @param reqCapacity
      * @return
      */

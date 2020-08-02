@@ -342,6 +342,9 @@ final class PoolChunk<T> implements PoolChunkMetric {
      * @return index in memoryMap
      */
     private long allocateRun(int normCapacity) {
+        /**
+         *  默认是8k = 2*13次方
+         */
         int d = maxOrder - (log2(normCapacity) - pageShifts);
         int id = allocateNode(d);
         if (id < 0) {
@@ -462,6 +465,11 @@ final class PoolChunk<T> implements PoolChunkMetric {
         memoryMap[id] = val;
     }
 
+    /**
+     * id就是memomerymap中对应层数的值
+     * @param id
+     * @return
+     */
     private byte depth(int id) {
         return depthMap[id];
     }
@@ -471,14 +479,36 @@ final class PoolChunk<T> implements PoolChunkMetric {
         return INTEGER_SIZE_MINUS_ONE - Integer.numberOfLeadingZeros(val);
     }
 
+    /**
+     * log2ChunkSize chunksize 以2为底的幂，这里表示的是幂
+     * @param id
+     * @return
+     */
     private int runLength(int id) {
         // represents the size in #bytes supported by node 'id' in the tree
         return 1 << log2ChunkSize - depth(id);
     }
 
+    /**
+     *
+     * @param id
+     * @return
+     */
     private int runOffset(int id) {
         // represents the 0-based offset in #bytes from start of the byte-array chunk
+        /**
+         * shift求的是 id所在层从左到右的偏移量
+         * 例如：二叉树的某一层。第三层 8个节点。
+         *    /\ /\ /\ /\
+         *    则8在这一层的索引是0  1000^1000=0
+         *    则9在这一层的索引是1  1001^1000=1
+         *
+         *
+         */
         int shift = id ^ 1 << depth(id);
+        /**
+         * 返回id所在内存偏移量
+         */
         return shift * runLength(id);
     }
 

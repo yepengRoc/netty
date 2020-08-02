@@ -56,6 +56,14 @@ final class PoolSubpage<T> implements PoolSubpageMetric {
         init(head, elemSize);
     }
 
+    /**
+     * 8k = 2(10) * 8 = 2(4)*2(6)*8
+     * 一个elementsize 是16byte
+     * 2(6)*8个 elementsize
+     * bitmap是long  8byte = 64bit
+     * @param head
+     * @param elemSize
+     */
     void init(PoolSubpage<T> head, int elemSize) {
         doNotDestroy = true;
         this.elemSize = elemSize;
@@ -63,7 +71,7 @@ final class PoolSubpage<T> implements PoolSubpageMetric {
             maxNumElems = numAvail = pageSize / elemSize;
             nextAvail = 0;
             bitmapLength = maxNumElems >>> 6;
-            if ((maxNumElems & 63) != 0) {
+            if ((maxNumElems & 63) != 0) {//如果不够64个，加1
                 bitmapLength ++;
             }
 
