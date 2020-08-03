@@ -111,7 +111,12 @@ abstract class PoolArena<T> implements PoolArenaMetric {
          */
         subpageOverflowMask = ~(pageSize - 1);
         /**
-         * tiny池 32
+         * tiny池 32。默认是32
+         * 左闭右开
+         * 索引0 存储的是申请内存大小为 0-16byte的对象
+         * 索引1存储的是申请内存大小为 16-32byte的对象
+         * 依次类推
+         * 如果一个对象申请内存20byte，则经过系统计算后每次申请32byte,在索引1上进行申请
          */
         tinySubpagePools = newSubpagePoolArray(numTinySubpagePools);
         /**
@@ -200,6 +205,9 @@ abstract class PoolArena<T> implements PoolArenaMetric {
     }
 
     private void allocate(PoolThreadCache cache, PooledByteBuf<T> buf, final int reqCapacity) {
+        /**
+         * 计算当前请求分配容量大小（实际会换算成2的幂）
+         */
         final int normCapacity = normalizeCapacity(reqCapacity);
         if (isTinyOrSmall(normCapacity)) { // capacity < pageSize
             int tableIdx;
@@ -238,6 +246,9 @@ abstract class PoolArena<T> implements PoolArenaMetric {
                     return;
                 }
             }
+            /**
+             * 第一次内存分配走这里
+             */
             synchronized (this) {
                 allocateNormal(buf, reqCapacity, normCapacity);
             }
@@ -346,11 +357,11 @@ abstract class PoolArena<T> implements PoolArenaMetric {
         int tableIdx;
         PoolSubpage<T>[] table;
         if (isTiny(elemSize)) { // < 512
-            tableIdx = elemSize >>> 4;
+            tableIdx = elemSize >>> 4;//计算当前请求分配的元素大小应该落在哪个区间  2的4次方  16的倍数
             table = tinySubpagePools;
         } else {
             tableIdx = 0;
-            elemSize >>>= 10;
+            elemSize >>>= 10;//2的10次方  1024的倍数.
             while (elemSize != 0) {
                 elemSize >>>= 1;
                 tableIdx ++;

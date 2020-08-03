@@ -246,6 +246,7 @@ final class PoolChunk<T> implements PoolChunkMetric {
 
     boolean allocate(PooledByteBuf<T> buf, int reqCapacity, int normCapacity) {
         final long handle;
+        //请求分配的内存大于一个页的大小
         if ((normCapacity & subpageOverflowMask) != 0) { // >= pageSize
             handle =  allocateRun(normCapacity);
         } else {
@@ -266,6 +267,7 @@ final class PoolChunk<T> implements PoolChunkMetric {
      * need to update their state
      * The minimal depth at which subtree rooted at id has some free space
      *
+     * 分配使用的更新方法*仅在分配了后继者并且其所有前任者需要更新其状态时才触发*根于id的子树具有一些可用空间的最小深度
      * @param id id
      */
     private void updateParentsAlloc(int id) {
@@ -273,6 +275,9 @@ final class PoolChunk<T> implements PoolChunkMetric {
             int parentId = id >>> 1;
             byte val1 = value(id);
             byte val2 = value(id ^ 1);
+            /**
+             * 父节点可分配的深度值为两个子节点可分配的深度值的最小值。
+             */
             byte val = val1 < val2 ? val1 : val2;
             setValue(parentId, val);
             id = parentId;
@@ -309,28 +314,40 @@ final class PoolChunk<T> implements PoolChunkMetric {
      * Algorithm to allocate an index in memoryMap when we query for a free node
      * at depth d
      *
-     * @param d depth
+     * @param d depth 二叉树高度（深度）
      * @return index in memoryMap
      */
     private int allocateNode(int d) {
         int id = 1;
         int initial = - (1 << d); // has last d bits = 0 and rest all = 1
-        byte val = value(id);
-        if (val > d) { // unusable
+        byte val = value(id);//val记录的是层数 2的幂
+        if (val > d) { // unusable  无可分配内存
             return -1;
         }
+        /**
+         * 不停的往下找，直到找到一个不能分配的节点。（即找到一个不能分配的层）
+         */
         while (val < d || (id & initial) == 0) { // id & initial == 1 << d for all ids at depth d, for < d it is 0
-            id <<= 1;
-            val = value(id);
-            if (val > d) {
-                id ^= 1;
+            id <<= 1;//找到左子树节点
+            val = value(id);//找到当前id所在的层数，即所在树的深度
+            if (val > d) {// 表明当前节点无可分配内存
+                /**
+                 * 因为 左子树节点肯定是2的幂次方。
+                 * 所以这里可以通过 id异或1找右兄弟
+                 * 例如 10000（左节点）
+                 * 10000^00001 = 10001 刚好比左节点大1
+                 */
+                id ^= 1;//找兄弟节点
                 val = value(id);
             }
         }
         byte value = value(id);
         assert value == d && (id & initial) == 1 << d : String.format("val = %d, id & initial = %d, d = %d",
                 value, id & initial, d);
-        setValue(id, unusable); // mark as unusable
+        setValue(id, unusable); // mark as unusable  设置id所在节点已经被占用 unusable = maxOrder+1
+        /**
+         * 更新当前节点可分配的内存深度
+         */
         updateParentsAlloc(id);
         return id;
     }
@@ -364,6 +381,7 @@ final class PoolChunk<T> implements PoolChunkMetric {
     private long allocateSubpage(int normCapacity) {
         // Obtain the head of the PoolSubPage pool that is owned by the PoolArena and synchronize on it.
         // This is need as we may add it back and so alter the linked-list structure.
+//        获取PoolArena拥有的PoolSubPage池的头部，并在其上进行同步。 这是必需的，因为我们可能会重新添加它，从而更改链表的结构。
         PoolSubpage<T> head = arena.findSubpagePoolHead(normCapacity);
         int d = maxOrder; // subpages are only be allocated from pages i.e., leaves
         synchronized (head) {
@@ -513,6 +531,7 @@ final class PoolChunk<T> implements PoolChunkMetric {
     }
 
     private int subpageIdx(int memoryMapIdx) {
+        //等价于 memoryMapIdx - maxSubpageAllocs;
         return memoryMapIdx ^ maxSubpageAllocs; // remove highest set bit, to get offset
     }
 

@@ -349,7 +349,7 @@ public class PooledByteBufAllocator extends AbstractByteBufAllocator implements 
         PoolArena<byte[]> heapArena = cache.heapArena;
 
         final ByteBuf buf;
-        if (heapArena != null) {
+        if (heapArena != null) {//池化分配
             buf = heapArena.allocate(cache, initialCapacity, maxCapacity);
         } else {
             buf = PlatformDependent.hasUnsafe() ?

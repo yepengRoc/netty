@@ -99,9 +99,9 @@ final class PoolSubpage<T> implements PoolSubpageMetric {
 
         final int bitmapIdx = getNextAvail();
         int q = bitmapIdx >>> 6;
-        int r = bitmapIdx & 63;
+        int r = bitmapIdx & 63;//求余数
         assert (bitmap[q] >>> r & 1) == 0;
-        bitmap[q] |= 1L << r;
+        bitmap[q] |= 1L << r;//就是要将即将返回的PoolSubpag所代表的位设置为1, 1L<<<r,然后与bimap[q] | 1L<<r即可实现这样的逻辑。
 
         if (-- numAvail == 0) {
             removeFromPool();
@@ -192,7 +192,7 @@ final class PoolSubpage<T> implements PoolSubpageMetric {
         final int baseVal = i << 6;
 
         for (int j = 0; j < 64; j ++) {
-            if ((bits & 1) == 0) {
+            if ((bits & 1) == 0) {//偶数
                 int val = baseVal | j;
                 if (val < maxNumElems) {
                     return val;

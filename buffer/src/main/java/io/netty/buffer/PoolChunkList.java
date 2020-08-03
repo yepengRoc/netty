@@ -77,7 +77,7 @@ final class PoolChunkList<T> implements PoolChunkListMetric {
     }
 
     boolean allocate(PooledByteBuf<T> buf, int reqCapacity, int normCapacity) {
-        if (normCapacity > maxCapacity) {
+        if (normCapacity > maxCapacity) {//超过当前poolchunk的最大容量
             // Either this PoolChunkList is empty or the requested capacity is larger then the capacity which can
             // be handled by the PoolChunks that are contained in this PoolChunkList.
             return false;
