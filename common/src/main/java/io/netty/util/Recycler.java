@@ -51,8 +51,8 @@ public abstract class Recycler<T> {
     private static final AtomicInteger ID_GENERATOR = new AtomicInteger(Integer.MIN_VALUE);
     private static final int OWN_THREAD_ID = ID_GENERATOR.getAndIncrement();
     private static final int DEFAULT_INITIAL_MAX_CAPACITY_PER_THREAD = 4 * 1024; // Use 4k instances as default.
-    private static final int DEFAULT_MAX_CAPACITY_PER_THREAD;
-    private static final int INITIAL_CAPACITY;
+    private static final int DEFAULT_MAX_CAPACITY_PER_THREAD;//对象池默认的最大容量
+    private static final int INITIAL_CAPACITY; //初始容量
     private static final int MAX_SHARED_CAPACITY_FACTOR;
     private static final int MAX_DELAYED_QUEUES_PER_THREAD;
     private static final int LINK_CAPACITY;

@@ -101,13 +101,14 @@ abstract class PoolArena<T> implements PoolArenaMetric {
          * pageSize 默认是 8192=8k
          */
         this.pageShifts = pageShifts;
-        this.chunkSize = chunkSize;
+        this.chunkSize = chunkSize;// 16m
         directMemoryCacheAlignment = cacheAlignment;
         directMemoryCacheAlignmentMask = cacheAlignment - 1;
         /**
          * 判断需要分片的容量是否超过 pageSize, 由于 pageSize 是2的幂，
          * 故如果要判断一个数小于 pageSize,位运算的操作是   anum &  ~(pageSize-1) == 0 的话，说明 anum 小于 pageSize
          * 例如 8 二进制 1000 ~(8-1) = 0111
+         * 取反
          */
         subpageOverflowMask = ~(pageSize - 1);
         /**
@@ -117,6 +118,8 @@ abstract class PoolArena<T> implements PoolArenaMetric {
          * 索引1存储的是申请内存大小为 16-32byte的对象
          * 依次类推
          * 如果一个对象申请内存20byte，则经过系统计算后每次申请32byte,在索引1上进行申请
+         * numTinySubpagePools 2的 5次方=32
+         *
          */
         tinySubpagePools = newSubpagePoolArray(numTinySubpagePools);
         /**
@@ -176,14 +179,39 @@ abstract class PoolArena<T> implements PoolArenaMetric {
 
     PooledByteBuf<T> allocate(PoolThreadCache cache, int reqCapacity, int maxCapacity) {
         PooledByteBuf<T> buf = newByteBuf(maxCapacity);
+        /**
+         * TODO
+         */
         allocate(cache, buf, reqCapacity);
         return buf;
     }
 
+    /**
+     * 相当于除以 16。tiny
+     * tiny 已16
+     * tiny pool 数组以 16划分。
+     * 0-15
+     * 16-31
+     *
+     * ...512
+     *  >>> 4 定位pool的位置,如果 位置已经有值， 则是一个链表
+     *  索引位置分配节点的大小  16*索引 标识当前位置分配tiny 节点的容量大小
+     * @param normCapacity
+     * @return
+     */
     static int tinyIdx(int normCapacity) {
         return normCapacity >>> 4;
     }
 
+    /**
+     * small pool 则是 1024 倍增
+     * 512-1024
+     * 1024-2048
+     * 2048-4096
+     * 4096-8192
+     * @param normCapacity
+     * @return
+     */
     static int smallIdx(int normCapacity) {
         int tableIdx = 0;
         int i = normCapacity >>> 10;
@@ -194,12 +222,25 @@ abstract class PoolArena<T> implements PoolArenaMetric {
         return tableIdx;
     }
 
+    /**
+     * 先判断 是否是一个pagesize内
+     * @param normCapacity
+     * @return
+     */
     // capacity < pageSize
     boolean isTinyOrSmall(int normCapacity) {
         return (normCapacity & subpageOverflowMask) == 0;
     }
 
     // normCapacity < 512  512b
+
+    /**
+     * 0xFFFFFE00 -512
+     * 在计算机中以补码的形式存在
+     * 11111111111111111111111000000000
+     * @param normCapacity
+     * @return
+     */
     static boolean isTiny(int normCapacity) {
         return (normCapacity & 0xFFFFFE00) == 0;
     }
@@ -209,7 +250,7 @@ abstract class PoolArena<T> implements PoolArenaMetric {
          * 计算当前请求分配容量大小（实际会换算成2的幂）
          */
         final int normCapacity = normalizeCapacity(reqCapacity);
-        if (isTinyOrSmall(normCapacity)) { // capacity < pageSize
+        if (isTinyOrSmall(normCapacity)) { // capacity < pageSize 一个pagesize范围内
             int tableIdx;
             PoolSubpage<T>[] table;
             boolean tiny = isTiny(normCapacity);
@@ -229,7 +270,7 @@ abstract class PoolArena<T> implements PoolArenaMetric {
                 table = smallSubpagePools;
             }
 
-            final PoolSubpage<T> head = table[tableIdx];
+            final PoolSubpage<T> head = table[tableIdx];//每个索引位置是一个链表
 
             /**
              * Synchronize on the head. This is needed as {@link PoolChunk#allocateSubpage(int)} and
@@ -237,7 +278,7 @@ abstract class PoolArena<T> implements PoolArenaMetric {
              */
             synchronized (head) {
                 final PoolSubpage<T> s = head.next;
-                if (s != head) {
+                if (s != head) {//非第一次分配
                     assert s.doNotDestroy && s.elemSize == normCapacity;
                     long handle = s.allocate();
                     assert handle >= 0;
@@ -247,7 +288,7 @@ abstract class PoolArena<T> implements PoolArenaMetric {
                 }
             }
             /**
-             * 第一次内存分配走这里
+             * 第一次内存分配走这里 TODO
              */
             synchronized (this) {
                 allocateNormal(buf, reqCapacity, normCapacity);
@@ -353,6 +394,11 @@ abstract class PoolArena<T> implements PoolArenaMetric {
         }
     }
 
+    /**
+     * 确定数组下标
+     * @param elemSize
+     * @return
+     */
     PoolSubpage<T> findSubpagePoolHead(int elemSize) {
         int tableIdx;
         PoolSubpage<T>[] table;

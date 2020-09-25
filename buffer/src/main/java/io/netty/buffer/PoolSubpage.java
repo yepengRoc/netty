@@ -52,6 +52,13 @@ final class PoolSubpage<T> implements PoolSubpageMetric {
         this.memoryMapIdx = memoryMapIdx;
         this.runOffset = runOffset;
         this.pageSize = pageSize;
+        /**
+         * 已tiny 为例 16的倍数。
+         * 如果申请的是tiny 大小的内存
+         * 如果标识哪个位置已经使用了，还是没使用
+         * bitmap 数组大小。  pagesize /16/64 即pagesize  左移4 位，再左移 6位。一共左移 10位
+         * long 8bit = 64位
+         */
         bitmap = new long[pageSize >>> 10]; // pageSize / 16 / 64
         init(head, elemSize);
     }
@@ -68,10 +75,11 @@ final class PoolSubpage<T> implements PoolSubpageMetric {
         doNotDestroy = true;
         this.elemSize = elemSize;
         if (elemSize != 0) {
+            //最大元素数量 = 可用数量
             maxNumElems = numAvail = pageSize / elemSize;
             nextAvail = 0;
-            bitmapLength = maxNumElems >>> 6;
-            if ((maxNumElems & 63) != 0) {//如果不够64个，加1
+            bitmapLength = maxNumElems >>> 6;// bitmapLength 为 maxNumElems右移6位，因为long 8bit=64位=2的6次方
+            if ((maxNumElems & 63) != 0) {//如果不够64个，加1。不够64导致 maxNumElems >>> 6 移位后为0，所以这里加1，至少有1个
                 bitmapLength ++;
             }
 
@@ -98,7 +106,7 @@ final class PoolSubpage<T> implements PoolSubpageMetric {
         }
 
         final int bitmapIdx = getNextAvail();
-        int q = bitmapIdx >>> 6;
+        int q = bitmapIdx >>> 6;//下标
         int r = bitmapIdx & 63;//求余数
         assert (bitmap[q] >>> r & 1) == 0;
         bitmap[q] |= 1L << r;//就是要将即将返回的PoolSubpag所代表的位设置为1, 1L<<<r,然后与bimap[q] | 1L<<r即可实现这样的逻辑。
@@ -106,7 +114,9 @@ final class PoolSubpage<T> implements PoolSubpageMetric {
         if (-- numAvail == 0) {
             removeFromPool();
         }
-
+        /**
+         * 高32位是bigMapIdx 低32位是memoryMap 中的索引id
+         */
         return toHandle(bitmapIdx);
     }
 
@@ -180,7 +190,10 @@ final class PoolSubpage<T> implements PoolSubpageMetric {
         final int bitmapLength = this.bitmapLength;
         for (int i = 0; i < bitmapLength; i ++) {
             long bits = bitmap[i];
-            if (~bits != 0) {
+            /**
+             * 说明这个long 代表的64个 poolsubpage并没有使用完
+             */
+            if (~bits != 0) {//说明不是-1.可用
                 return findNextAvail0(i, bits);
             }
         }
@@ -189,11 +202,11 @@ final class PoolSubpage<T> implements PoolSubpageMetric {
 
     private int findNextAvail0(int i, long bits) {
         final int maxNumElems = this.maxNumElems;
-        final int baseVal = i << 6;
+        final int baseVal = i << 6;//64
 
         for (int j = 0; j < 64; j ++) {
-            if ((bits & 1) == 0) {//偶数
-                int val = baseVal | j;
+            if ((bits & 1) == 0) {//判断bits是否为0
+                int val = baseVal | j;//类似于1个 加操作。在小于64的时候，不进位
                 if (val < maxNumElems) {
                     return val;
                 } else {
@@ -205,6 +218,12 @@ final class PoolSubpage<T> implements PoolSubpageMetric {
         return -1;
     }
 
+    /**
+     *
+     *  0x4000000000000000L = 4611686018427387904  2的63次方   正
+     * @param bitmapIdx
+     * @return
+     */
     private long toHandle(int bitmapIdx) {
         return 0x4000000000000000L | (long) bitmapIdx << 32 | memoryMapIdx;
     }

@@ -73,7 +73,7 @@ public class PooledByteBufAllocator extends AbstractByteBufAllocator implements 
         DEFAULT_MAX_ORDER = defaultMaxOrder;
 
         // Determine reasonable default for nHeapArena and nDirectArena. 为nHeapArena和nDirectArena确定合理的默认值。
-        // Assuming each arena has 3 chunks, the pool should not consume more than 50% of max memory.假设每个竞技场有3个块，则该池消耗的内存不应超过最大内存的50％。
+        // Assuming each arena has 3 chunks, the pool should not consume more than 50% of max memory.假设每个arena有3个chunks，则该池消耗的内存不应超过最大内存的50％。
         final Runtime runtime = Runtime.getRuntime();
 
         /*
@@ -86,21 +86,30 @@ public class PooledByteBufAllocator extends AbstractByteBufAllocator implements 
          * See https://github.com/netty/netty/issues/3888.
          */
         final int defaultMinNumArena = NettyRuntime.availableProcessors() * 2;//处理器数*2 。 计算 Arena的数量
+        /**
+         * 计算 Arena中chunk的大小  2的13次方 的 11次方 = 16M
+         * pagesize 8k  左移 11位, 16m
+         */
         final int defaultChunkSize = DEFAULT_PAGE_SIZE << DEFAULT_MAX_ORDER;//计算 Arena中chunk的大小  2的13次方 的 11次方 = 16M
         DEFAULT_NUM_HEAP_ARENA = Math.max(0,
                 SystemPropertyUtil.getInt(
                         "io.netty.allocator.numHeapArenas",
                         (int) Math.min(
                                 defaultMinNumArena,
-                                runtime.maxMemory() / defaultChunkSize / 2 / 3)));//不超过系统一般内存。 至少可以分3个 defaultChunkSize 在PoolArena
+                                runtime.maxMemory() / defaultChunkSize / 2 / 3)));//不超过堆内存一半。至少可以分3个 defaultChunkSize 在PoolArena
         DEFAULT_NUM_DIRECT_ARENA = Math.max(0,
                 SystemPropertyUtil.getInt(
                         "io.netty.allocator.numDirectArenas",
                         (int) Math.min(
                                 defaultMinNumArena,
-                                PlatformDependent.maxDirectMemory() / defaultChunkSize / 2 / 3)));
+                                PlatformDependent.maxDirectMemory() / defaultChunkSize / 2 / 3)));//堆外内存
 
-        // cache sizes
+        /**
+         * cache sizes
+         * TINY 512k
+         * small 256kb
+         * nomal 64kb
+          */
         DEFAULT_TINY_CACHE_SIZE = SystemPropertyUtil.getInt("io.netty.allocator.tinyCacheSize", 512);
         DEFAULT_SMALL_CACHE_SIZE = SystemPropertyUtil.getInt("io.netty.allocator.smallCacheSize", 256);
         DEFAULT_NORMAL_CACHE_SIZE = SystemPropertyUtil.getInt("io.netty.allocator.normalCacheSize", 64);
@@ -249,9 +258,12 @@ public class PooledByteBufAllocator extends AbstractByteBufAllocator implements 
                                   boolean useCacheForAllThreads, int directMemoryCacheAlignment) {
         super(preferDirect);
         threadCache = new PoolThreadLocalCache(useCacheForAllThreads);
-        this.tinyCacheSize = tinyCacheSize;
-        this.smallCacheSize = smallCacheSize;
-        this.normalCacheSize = normalCacheSize;
+        this.tinyCacheSize = tinyCacheSize;//512
+        this.smallCacheSize = smallCacheSize;//256
+        this.normalCacheSize = normalCacheSize;//64
+        /**
+         * chunkSize 16777216byte  2的14次方11次方=16M
+         */
         chunkSize = validateAndCalculateChunkSize(pageSize, maxOrder);
 
         checkPositiveOrZero(nHeapArena, "nHeapArena");
@@ -266,8 +278,12 @@ public class PooledByteBufAllocator extends AbstractByteBufAllocator implements 
             throw new IllegalArgumentException("directMemoryCacheAlignment: "
                     + directMemoryCacheAlignment + " (expected: power of two)");
         }
-
-        int pageShifts = validateAndCalculatePageShifts(pageSize);// 13 即pageSize 以2为底取对数
+        /**
+         * 13 即pageSize 以2为底取对数
+         * 32 -1 -18 =13
+         * 18是 pagesize 补码前面0的个数
+         */
+        int pageShifts = validateAndCalculatePageShifts(pageSize);//
 
         if (nHeapArena > 0) {
             heapArenas = newArenaArray(nHeapArena);
@@ -323,6 +339,10 @@ public class PooledByteBufAllocator extends AbstractByteBufAllocator implements 
         }
 
         // Logarithm base 2. At this point we know that pageSize is a power of two.
+        /**
+         * 对数以2为底。至此，我们知道pageSize是2的幂。
+         * 32 - 1 - 18 = 13
+         */
         return Integer.SIZE - 1 - Integer.numberOfLeadingZeros(pageSize);
     }
 
@@ -332,6 +352,11 @@ public class PooledByteBufAllocator extends AbstractByteBufAllocator implements 
         }
 
         // Ensure the resulting chunkSize does not overflow.
+        /**
+         * maxorder 默认是11
+         * pagesize 默认是 8k = 2的 14次方
+         * pagesize 左移11位=16M
+         */
         int chunkSize = pageSize;
         for (int i = maxOrder; i > 0; i --) {
             if (chunkSize > MAX_CHUNK_SIZE / 2) {
@@ -350,6 +375,9 @@ public class PooledByteBufAllocator extends AbstractByteBufAllocator implements 
 
         final ByteBuf buf;
         if (heapArena != null) {//池化分配
+            /**
+             * TODO
+             */
             buf = heapArena.allocate(cache, initialCapacity, maxCapacity);
         } else {
             buf = PlatformDependent.hasUnsafe() ?

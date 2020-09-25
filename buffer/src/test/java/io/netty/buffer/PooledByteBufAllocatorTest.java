@@ -559,4 +559,20 @@ public class PooledByteBufAllocatorTest extends AbstractByteBufAllocatorTest<Poo
             }
         }
     }
+
+    /**
+     * 简单测试
+     */
+    @Test
+    public void simpleTest(){
+        PooledByteBufAllocator a = new PooledByteBufAllocator(false);
+        ByteBuf buf1 = a.heapBuffer(18);
+        ByteBuf buf2 = a.heapBuffer(252);
+        ByteBuf buf3 = a.heapBuffer(300);
+        ByteBuf buf4 = a.heapBuffer(800);
+        ByteBuf buf5 = a.heapBuffer(1680);
+
+//        buf.release();
+//        System.out.println(buf);
+    }
 }

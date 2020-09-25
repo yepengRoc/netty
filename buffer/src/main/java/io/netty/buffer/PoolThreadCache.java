@@ -65,6 +65,16 @@ final class PoolThreadCache {
     // TODO: Test if adding padding helps under contention
     //private long pad0, pad1, pad2, pad3, pad4, pad5, pad6, pad7;
 
+    /**
+     *
+     * @param heapArena
+     * @param directArena
+     * @param tinyCacheSize
+     * @param smallCacheSize
+     * @param normalCacheSize
+     * @param maxCachedBufferCapacity
+     * @param freeSweepAllocationThreshold
+     */
     PoolThreadCache(PoolArena<byte[]> heapArena, PoolArena<ByteBuffer> directArena,
                     int tinyCacheSize, int smallCacheSize, int normalCacheSize,
                     int maxCachedBufferCapacity, int freeSweepAllocationThreshold) {
@@ -138,7 +148,8 @@ final class PoolThreadCache {
             int cacheSize, int maxCachedBufferCapacity, PoolArena<T> area) {
         if (cacheSize > 0 && maxCachedBufferCapacity > 0) {
             int max = Math.min(area.chunkSize, maxCachedBufferCapacity);
-            int arraySize = Math.max(1, log2(max / area.pageSize) + 1);
+            int arraySize = Math.max(1, log2(max / area.pageSize) + 1);// max >> numShiftsNormalHeap
+
 
             @SuppressWarnings("unchecked")
             MemoryRegionCache<T>[] cache = new MemoryRegionCache[arraySize];

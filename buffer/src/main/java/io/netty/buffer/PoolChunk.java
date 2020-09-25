@@ -30,7 +30,7 @@ import java.util.Deque;
  * 表示法：以下术语对于理解代码很重要
  * >页面-页面是可以分配的内存块的最小单位
  * >块-块是页面的集合
- * >在此代码中chunkSize = 2 ^ {maxOrder} * pageSize
+ * >在此代码中chunkSize = 2 ^ {maxOrder} * pageSize  16m=8k *
  *
  * To begin we allocate a byte array of size = chunkSize
  * Whenever a ByteBuf of given size needs to be created we search for the first position
@@ -169,16 +169,16 @@ final class PoolChunk<T> implements PoolChunkMetric {
         this.memory = memory;
         this.pageSize = pageSize;//页大小
         this.pageShifts = pageShifts;
-        this.maxOrder = maxOrder;//最大
+        this.maxOrder = maxOrder;//最大  14
         this.chunkSize = chunkSize;//chunk 大小
         this.offset = offset;
         unusable = (byte) (maxOrder + 1);//不可用
         log2ChunkSize = log2(chunkSize);//chunsize 以2为底的对数
-        subpageOverflowMask = ~(pageSize - 1);
+        subpageOverflowMask = ~(pageSize - 1);// 11111111111111111110000000000000
         freeBytes = chunkSize;
 
         assert maxOrder < 30 : "maxOrder should be < 30, but is: " + maxOrder;
-        maxSubpageAllocs = 1 << maxOrder;//
+        maxSubpageAllocs = 1 << maxOrder;// 2的 14次方.只有叶子节点分配内存
 
         // Generate the memory map.
         memoryMap = new byte[maxSubpageAllocs << 1];
@@ -248,9 +248,12 @@ final class PoolChunk<T> implements PoolChunkMetric {
         final long handle;
         //请求分配的内存大于一个页的大小
         if ((normCapacity & subpageOverflowMask) != 0) { // >= pageSize
-            handle =  allocateRun(normCapacity);
+            /**
+             * 要分配的内存大于一个pagesize TODO
+             */
+            handle =  allocateRun(normCapacity);// 返回的是memoryMap的id
         } else {
-            handle = allocateSubpage(normCapacity);
+            handle = allocateSubpage(normCapacity); // 高32位表示PoolSubpage中的bitmap中的bitmapIdx,表示第多少个内存区域，低32位表示memoryMap的id
         }
 
         if (handle < 0) {
@@ -316,16 +319,27 @@ final class PoolChunk<T> implements PoolChunkMetric {
      *
      * @param d depth 二叉树高度（深度）
      * @return index in memoryMap
+     * d 这里传入的是层数
      */
     private int allocateNode(int d) {
         int id = 1;
+        /**
+         * - 2的14次方  1 0000.... 100000000000000
+         * 计算中表示，符号位不变，取反加1
+         * 1 111... 011111111111111 + 1 = 1 111... 100000000000000
+         */
         int initial = - (1 << d); // has last d bits = 0 and rest all = 1
-        byte val = value(id);//val记录的是层数 2的幂
-        if (val > d) { // unusable  无可分配内存
+        byte val = value(id);//val记录的是层数。 id 为1 在第 0层
+        /**
+         * 已经大于了最大层数，标识 无可分配内存
+         */
+        if (val > d) { // unusable  无可分配内存  d maxOrder
             return -1;
         }
         /**
          * 不停的往下找，直到找到一个不能分配的节点。（即找到一个不能分配的层）
+         * id & initial != 0说明在最大分配范围内
+         * val < d 说明可以分配内存
          */
         while (val < d || (id & initial) == 0) { // id & initial == 1 << d for all ids at depth d, for < d it is 0
             id <<= 1;//找到左子树节点
@@ -361,6 +375,7 @@ final class PoolChunk<T> implements PoolChunkMetric {
     private long allocateRun(int normCapacity) {
         /**
          *  默认是8k = 2*13次方
+         *  pageShifts 一个pagesize 是2的pageShifts 次方
          */
         int d = maxOrder - (log2(normCapacity) - pageShifts);
         int id = allocateNode(d);
@@ -383,8 +398,11 @@ final class PoolChunk<T> implements PoolChunkMetric {
         // This is need as we may add it back and so alter the linked-list structure.
 //        获取PoolArena拥有的PoolSubPage池的头部，并在其上进行同步。 这是必需的，因为我们可能会重新添加它，从而更改链表的结构。
         PoolSubpage<T> head = arena.findSubpagePoolHead(normCapacity);
-        int d = maxOrder; // subpages are only be allocated from pages i.e., leaves
+        int d = maxOrder; // subpages are only be allocated from pages i.e., leaves  14
         synchronized (head) {
+            /**
+             * TODO
+             */
             int id = allocateNode(d);
             if (id < 0) {
                 return id;
@@ -434,6 +452,9 @@ final class PoolChunk<T> implements PoolChunkMetric {
         }
         freeBytes += runLength(memoryMapIdx);
         setValue(memoryMapIdx, depth(memoryMapIdx));
+        /**
+         * TODO
+         */
         updateParentsFree(memoryMapIdx);
 
         if (nioBuffer != null && cachedNioBuffers != null &&
@@ -468,7 +489,9 @@ final class PoolChunk<T> implements PoolChunkMetric {
         PoolSubpage<T> subpage = subpages[subpageIdx(memoryMapIdx)];
         assert subpage.doNotDestroy;
         assert reqCapacity <= subpage.elemSize;
-
+        /**
+         * 0x3FFFFFFF 的二进制 111111111111111111111111111111
+         */
         buf.init(
             this, nioBuffer, handle,
             runOffset(memoryMapIdx) + (bitmapIdx & 0x3FFFFFFF) * subpage.elemSize + offset,
@@ -499,21 +522,29 @@ final class PoolChunk<T> implements PoolChunkMetric {
 
     /**
      * log2ChunkSize chunksize 以2为底的幂，这里表示的是幂
+     *
+     * 例如： 3层
+     * [空,0 1 1 2 2 2 2 3 3  3  3  3   3   3  3]
+     *   0 1 2 3 4 5 6 7 8 9 10 11  12 13  14 15
+     * 对应的实际
+     * id所在节点支持的 存储大小
      * @param id
      * @return
      */
     private int runLength(int id) {
         // represents the size in #bytes supported by node 'id' in the tree
-        return 1 << log2ChunkSize - depth(id);
+        //1 << (log2ChunkSize - depth(id))
+        return 1 << (log2ChunkSize - depth(id));
     }
 
     /**
      *
-     * @param id
+     * @param id  表示数组的下标
      * @return
      */
     private int runOffset(int id) {
         // represents the 0-based offset in #bytes from start of the byte-array chunk
+        //表示从字节数组块开始的#bytes中从0开始的偏移量
         /**
          * shift求的是 id所在层从左到右的偏移量
          * 例如：二叉树的某一层。第三层 8个节点。
@@ -521,24 +552,42 @@ final class PoolChunk<T> implements PoolChunkMetric {
          *    则8在这一层的索引是0  1000^1000=0
          *    则9在这一层的索引是1  1001^1000=1
          *
-         *
+         *id ^ 1 << depth(id) 等价于  id ^ (1 << depth(id))
+         * 异或
+         * 计算id 在对应层的偏移量
          */
-        int shift = id ^ 1 << depth(id);
+        int shift = id ^ (1 << depth(id));
         /**
          * 返回id所在内存偏移量
+         * 偏移量*所在层每个node的内存大小，计算出当前分配的起始内存位置
          */
         return shift * runLength(id);
     }
 
+    /**
+     *
+     * @param memoryMapIdx
+     * @return
+     */
     private int subpageIdx(int memoryMapIdx) {
         //等价于 memoryMapIdx - maxSubpageAllocs;
         return memoryMapIdx ^ maxSubpageAllocs; // remove highest set bit, to get offset
     }
 
+    /**
+     * 只取long的低 32位
+     * @param handle
+     * @return
+     */
     private static int memoryMapIdx(long handle) {
         return (int) handle;
     }
 
+    /**
+     * 取long 的高32位
+     * @param handle
+     * @return
+     */
     private static int bitmapIdx(long handle) {
         return (int) (handle >>> Integer.SIZE);
     }
