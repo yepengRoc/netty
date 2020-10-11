@@ -56,7 +56,9 @@ public class AdaptiveRecvByteBufAllocator extends DefaultMaxMessagesRecvByteBufA
             sizeTable.add(i);
             // 16 32 48 64 90 106
         }
-
+        /**
+         * 大于 512 每次扩容为之前容量的两倍
+         */
         for (int i = 512; i > 0; i <<= 1) {
             sizeTable.add(i);
             // 512 256 128 64 32 16  8 4 2 1

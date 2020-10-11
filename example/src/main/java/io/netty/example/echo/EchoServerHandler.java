@@ -39,6 +39,10 @@ public class EchoServerHandler extends ChannelInboundHandlerAdapter {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         // Close the connection when an exception is raised.
         cause.printStackTrace();
+        ctx.writeAndFlush("");
+        ctx.write("");
+        ctx.flush();
+
         ctx.close();
     }
 }
