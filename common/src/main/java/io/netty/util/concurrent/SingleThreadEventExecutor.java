@@ -265,7 +265,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
                     // scheduled tasks are never executed if there is always one task in the taskQueue.
                     // This is for example true for the read task of OIO Transport
                     // See https://github.com/netty/netty/issues/1614
-                    fetchFromScheduledTaskQueue();
+                    fetchFromScheduledTaskQueue();//把
                     task = taskQueue.poll();
                 }
 
@@ -288,6 +288,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
             }
             if (!taskQueue.offer(scheduledTask)) {
                 // No space left in the task queue add it back to the scheduledTaskQueue so we pick it up again.
+                //任务队列中没有剩余空间，将其重新添加到ScheduledTaskQueue中，因此我们再次进行拾取。
                 scheduledTaskQueue.add((ScheduledFutureTask<?>) scheduledTask);
                 return false;
             }
@@ -459,6 +460,9 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
      * the tasks in the task queue and returns if it ran longer than {@code timeoutNanos}.
      */
     protected boolean runAllTasks(long timeoutNanos) {
+        /**
+         * 超过延时的任务移动到 taskqueue中
+         */
         fetchFromScheduledTaskQueue();
         Runnable task = pollTask();
         if (task == null) {
@@ -827,6 +831,11 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
         execute(ObjectUtil.checkNotNull(task, "task"), false);
     }
 
+    /**
+     * TODO
+     * @param task
+     * @param immediate
+     */
     private void execute(Runnable task, boolean immediate) {
         boolean inEventLoop = inEventLoop();
         /**

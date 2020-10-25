@@ -468,13 +468,13 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                          * 计算下一次 调度任务的时间。没有的话，就取当前时间。
                          * 然后让select 阻塞到这个时间
                          */
-                        long curDeadlineNanos = nextScheduledTaskDeadlineNanos();
+                        long curDeadlineNanos = nextScheduledTaskDeadlineNanos();// 获取优先级队列中最近需要执行任务的时间
                         if (curDeadlineNanos == -1L) {
                             curDeadlineNanos = NONE; // nothing on the calendar
                         }
                         nextWakeupNanos.set(curDeadlineNanos);
                         try {
-                            if (!hasTasks()) {
+                            if (!hasTasks()) {//队列中没有任务
                                 strategy = select(curDeadlineNanos);
                             }
                         } finally {
@@ -489,6 +489,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                 } catch (IOException e) {
                     // If we receive an IOException here its because the Selector is messed up. Let's rebuild
                     // the selector and retry. https://github.com/netty/netty/issues/8566
+                    //如果在这里收到IOException，则是因为Selector搞砸了
                     rebuildSelector0();
                     selectCnt = 0;
                     handleLoopException(e);

@@ -513,7 +513,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                     return;
                 }
                 /**
-                 * 控制 只注册以此
+                 * 控制 只注册一次
                  */
                 boolean firstRegistration = neverRegistered;
                 /**

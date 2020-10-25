@@ -390,6 +390,9 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
         // This method is invoked before channelRegistered() is triggered.  Give user handlers a chance to set up
         // the pipeline in its channelRegistered() implementation.
         //在触发channelRegistered（）之前调用此方法。使用户处理程序有机会在其channelRegistered（）实现中建立管道。
+        /**
+         * 这个时候就启动了NioEventLoop 中的run方法  本身是一个线程
+         */
         channel.eventLoop().execute(new Runnable() {
             @Override
             public void run() {

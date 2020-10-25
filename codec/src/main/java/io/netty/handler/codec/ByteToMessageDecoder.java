@@ -70,7 +70,7 @@ import static java.lang.Integer.MAX_VALUE;
  * For example calling <tt>in.getInt(0)</tt> is assuming the frame starts at the beginning of the buffer, which
  * is not always the case. Use <tt>in.getInt(in.readerIndex())</tt> instead.
  * 若要在不修改阅读器索引的情况下检查完整的帧，请使用ByteBuf.getInt（int）之类的方法。使用ByteBuf.getInt（int）之类的方法时，
- * 必须使用阅读器索引。例如，调用in.getInt（0）假定帧始于缓冲区的开头，但情况并非总是如此。请改用in.getInt（in.readerIndex（））。
+ * 必须使用reader索引。例如，调用in.getInt（0）假定帧始于缓冲区的开头，但情况并非总是如此。请改用in.getInt（in.readerIndex（））。
  * <h3>Pitfalls</h3>陷阱
  * <p>
  * Be aware that sub-classes of {@link ByteToMessageDecoder} <strong>MUST NOT</strong>
@@ -102,9 +102,12 @@ public abstract class ByteToMessageDecoder extends ChannelInboundHandlerAdapter 
                         (required > cumulation.maxFastWritableBytes() && cumulation.refCnt() > 1) ||
                         cumulation.isReadOnly()) {
                     // Expand cumulation (by replacing it) under the following conditions:
-                    // - cumulation cannot be resized to accommodate the additional data
+                    // - cumulation cannot be resized to accommodate the additional data 无法调整累积大小以容纳其他数据
                     // - cumulation can be expanded with a reallocation operation to accommodate but the buffer is
                     //   assumed to be shared (e.g. refCnt() > 1) and the reallocation may not be safe.
+                    /**
+                     * 可以使用重新分配操作来扩展累积以容纳，但是假定缓冲区是共享的（例如refCnt（）> 1），并且重新分配可能并不安全。
+                     */
                     return expandCumulation(alloc, cumulation, in);
                 }
                 cumulation.writeBytes(in, in.readerIndex(), required);

@@ -79,6 +79,7 @@ public abstract class SimpleChannelInboundHandler<I> extends ChannelInboundHandl
     /**
      * SimpleChannelInboundHandler 中有自动释放的功能，所以如果继承了SimpleChannelInboundHandler的话，
      * 不能再对msg 进行引用，因为会被自动释放
+     *
      * @param ctx
      * @param msg
      * @throws Exception
@@ -87,6 +88,10 @@ public abstract class SimpleChannelInboundHandler<I> extends ChannelInboundHandl
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         boolean release = true;
         try {
+            /**
+             * 从这段逻辑可以看出，只处理匹配类型的消息。
+             * 如果消息类型匹配，处理完之后 会进行引用减1操作
+             */
             if (acceptInboundMessage(msg)) {
                 @SuppressWarnings("unchecked")
                 I imsg = (I) msg;
